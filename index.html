@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>La Cafetera - Comandas</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: #8B4513; margin-bottom: 10px; text-align: center; }
+        .subtitulo { text-align: center; color: #666; margin-bottom: 20px; font-size: 14px; }
+        
+        .seccion { background: white; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #D2B48C; }
+        .seccion h2 { font-size: 14px; color: #8B4513; margin-bottom: 15px; font-weight: bold; text-transform: uppercase; }
+        
+        .categorias { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        button.categoria { 
+            padding: 8px 15px; 
+            background: #f0f0f0; 
+            border: 2px solid #ddd; 
+            cursor: pointer; 
+            border-radius: 5px;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        button.categoria:hover { border-color: #8B4513; }
+        button.categoria.activa { background: #8B4513; color: white; border-color: #8B4513; }
+        
+        .articulos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        button.articulo { 
+            padding: 12px; 
+            background: #f9f9f9; 
+            border: 2px solid #ddd; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 12px;
+            text-align: center;
+            transition: 0.2s;
+            line-height: 1.4;
+            display: flex;
+            flex-direction: column;
+        }
+        button.articulo:hover { border-color: #8B4513; background: #fff8f0; }
+        button.articulo.seleccionado { background: #8B4513; color: white; border-color: #8B4513; }
+        .nombre { flex: 1; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
+        .precio { display: block; font-weight: bold; padding-top: 5px; border-top: 1px solid #ddd; color: #666; font-size: 13px; }
+        button.articulo.seleccionado .precio { color: #fff; border-top-color: rgba(255,255,255,0.3); }
+        
+        .cantidad-control { display: flex; gap: 10px; align-items: center; margin: 15px 0; justify-content: center; }
+        .cantidad-control label { font-weight: bold; }
+        .cantidad-control button { padding: 8px 15px; background: #ddd; border: none; cursor: pointer; border-radius: 3px; font-size: 16px; }
+        .cantidad-control input { width: 60px; padding: 8px; text-align: center; font-size: 16px; border: 1px solid #ddd; border-radius: 3px; }
+        
+        button.agregar { 
+            width: 100%; 
+            padding: 12px; 
+            background: #28a745; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            font-size: 15px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 15px;
+        }
+        button.agregar:hover { background: #218838; }
+        
+        .resumen-pedido { background: #fff8f0; border: 2px solid #D2B48C; }
+        .resumen-item { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 10px 0; 
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+            align-items: center;
+        }
+        .resumen-item span:last-child { display: flex; gap: 8px; }
+        button.quitar { padding: 5px 10px; background: #dc3545; color: white; border: none; cursor: pointer; border-radius: 3px; font-size: 12px; }
+        .total { font-weight: bold; font-size: 16px; padding: 15px 0; border-top: 2px solid #8B4513; color: #8B4513; display: flex; justify-content: space-between; }
+        
+        .botones-pedido { display: flex; gap: 10px; margin-top: 15px; }
+        button.enviar { flex: 1; padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        button.cancelar { flex: 1; padding: 12px; background: #999; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        button.enviar:hover { background: #218838; }
+        button.cancelar:hover { background: #777; }
+        
+        .lista-pedidos { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; }
+        .pedido-item { 
+            background: #f9f9f9; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-left: 4px solid #8B4513; 
+            border-radius: 3px;
+            font-size: 13px;
+        }
+        .pedido-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .pedido-hora { font-weight: bold; color: #8B4513; }
+        .pedido-items { color: #666; margin: 8px 0; }
+        .pedido-total { font-weight: bold; font-size: 14px; margin: 8px 0; }
+        .pedido-botones { display: flex; gap: 8px; }
+        .completar { padding: 6px 12px; background: #17a2b8; color: white; border: none; cursor: pointer; border-radius: 3px; font-size: 12px; }
+        .eliminar { padding: 6px 12px; background: #dc3545; color: white; border: none; cursor: pointer; border-radius: 3px; font-size: 12px; }
+        .completado { opacity: 0.6; }
+        .completado .pedido-hora { text-decoration: line-through; }
+        
+        .sin-pedidos { color: #999; text-align: center; padding: 30px; }
+        
+        @media (max-width: 600px) {
+            .articulos { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+            .container { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>☕ La Cafetera</h1>
+        <p class="subtitulo">Sistema de Comandas</p>
+        
+        <div class="seccion">
+            <h2>Selecciona Categoría</h2>
+            <div class="categorias" id="categorias"></div>
+            
+            <h2 style="margin-top: 20px;">Artículos</h2>
+            <div class="articulos" id="articulos"></div>
+            
+            <div class="cantidad-control">
+                <label>Cantidad:</label>
+                <button onclick="restarCantidad()">−</button>
+                <input type="number" id="cantidad" value="1" min="1">
+                <button onclick="sumarCantidad()">+</button>
+            </div>
+            
+            <button class="agregar" onclick="agregarAlPedido()">➕ Agregar al Pedido</button>
+        </div>
+        
+        <div class="seccion resumen-pedido" id="resumenPedido" style="display: none;">
+            <h2>📝 Resumen del Pedido</h2>
+            <div id="resumen"></div>
+            <div class="total">
+                <span>Total:</span>
+                <span id="totalPedido">$0</span>
+            </div>
+            <div class="botones-pedido">
+                <button class="enviar" onclick="enviarPedido()">✅ ENVIAR PEDIDO</button>
+                <button class="cancelar" onclick="cancelarPedido()">❌ Cancelar</button>
+            </div>
+        </div>
+        
+        <div class="lista-pedidos">
+            <h2>📋 Historial de Pedidos</h2>
+            <div id="listaPedidos"></div>
+        </div>
+    </div>
+
+    <script>
+        const ARTICULOS = {
+            'Bebidas Calientes': [
+                { id: 1, nombre: 'Espresso', precio: 5500 },
+                { id: 2, nombre: 'Espresso Doble', precio: 6000 },
+                { id: 3, nombre: 'Americano', precio: 6800 },
+                { id: 4, nombre: 'Café con Leche', precio: 7800 },
+                { id: 5, nombre: 'Mocaccino', precio: 10800 },
+                { id: 6, nombre: 'Chocolate', precio: 8800 },
+                { id: 7, nombre: 'Milo Caliente', precio: 10800 },
+                { id: 8, nombre: 'Aromática', precio: 5800 },
+                { id: 9, nombre: 'Cappuccino Tradicional', precio: 9800 },
+                { id: 10, nombre: 'Cappuccino Macadamia', precio: 12800 },
+                { id: 11, nombre: 'Cappuccino Vainilla', precio: 12800 },
+                { id: 12, nombre: 'Cappuccino Caramelo', precio: 12800 },
+                { id: 13, nombre: 'Cappuccino Amaretto', precio: 15800 },
+                { id: 14, nombre: 'Café Bombón', precio: 11800 },
+                { id: 15, nombre: 'Café Vienés', precio: 12800 },
+                { id: 16, nombre: 'Chai Latte', precio: 10800 },
+            ],
+            'Bebidas Frías': [
+                { id: 17, nombre: 'Granizado de Café', precio: 13800 },
+                { id: 18, nombre: 'Milo Frío', precio: 12800 },
+                { id: 19, nombre: 'Frappeado', precio: 15800 },
+                { id: 20, nombre: 'Malleada', precio: 16800 },
+                { id: 21, nombre: 'Jugo en Agua', precio: 9800 },
+                { id: 22, nombre: 'Jugo en Leche', precio: 11800 },
+            ],
+            'Panadería y Pastelería': [
+                { id: 23, nombre: 'Waflebonos x 4', precio: 8800 },
+                { id: 24, nombre: 'Waflebonos x 8', precio: 14800 },
+                { id: 25, nombre: 'Pandelaitos x 6', precio: 11800 },
+                { id: 26, nombre: 'Brownie', precio: 6500 },
+                { id: 27, nombre: 'Galletas', precio: 4500 },
+                { id: 28, nombre: 'Torta de Zanahoria', precio: 8500 },
+                { id: 29, nombre: 'Torta de Chocolate', precio: 8500 },
+                { id: 30, nombre: 'Rollo de Canela', precio: 9800 },
+                { id: 31, nombre: 'Muffin', precio: 5500 },
+                { id: 32, nombre: 'Alfajores', precio: 4500 },
+            ],
+            'Focaccias': [
+                { id: 33, nombre: 'Focaccia con Jamón Cerdo', precio: 17800 },
+                { id: 34, nombre: 'Focaccia con Jamón Pavo', precio: 17800 },
+                { id: 35, nombre: 'Focaccia Mixta', precio: 17800 },
+            ],
+            'Adicionales': [
+                { id: 36, nombre: 'Amaretto', precio: 6000 },
+                { id: 37, nombre: 'Crema de Whisky', precio: 6000 },
+                { id: 38, nombre: 'Crema Chantilly', precio: 5000 },
+            ]
+        };
+
+        let categoriaActual = 'Bebidas Calientes';
+        let articuloSeleccionado = null;
+        let pedidoActual = [];
+
+        // Función para formatear precio
+        function formatearPrecio(precio) {
+            return precio.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+        }
+
+        // Inicializar
+        function inicializar() {
+            renderizarCategorias();
+            renderizarArticulos();
+            cargarPedidos();
+        }
+
+        // Mostrar categorías
+        function renderizarCategorias() {
+            const contenedor = document.getElementById('categorias');
+            contenedor.innerHTML = Object.keys(ARTICULOS).map(cat => `
+                <button class="categoria ${cat === categoriaActual ? 'activa' : ''}" onclick="cambiarCategoria('${cat}')">
+                    ${cat}
+                </button>
+            `).join('');
+        }
+
+        // Cambiar categoría
+        function cambiarCategoria(cat) {
+            categoriaActual = cat;
+            renderizarCategorias();
+            renderizarArticulos();
+            articuloSeleccionado = null;
+            document.getElementById('cantidad').value = 1;
+        }
+
+        // Mostrar artículos de la categoría
+        function renderizarArticulos() {
+            const contenedor = document.getElementById('articulos');
+            const articulos = ARTICULOS[categoriaActual];
+            
+            contenedor.innerHTML = articulos.map(art => `
+                <button class="articulo" id="art-${art.id}" onclick="seleccionarArticulo(${art.id}, '${art.nombre}', ${art.precio})">
+                    <div class="nombre">${art.nombre}</div>
+                    <div class="precio">${formatearPrecio(art.precio)}</div>
+                </button>
+            `).join('');
+        }
+
+        // Seleccionar artículo
+        function seleccionarArticulo(id, nombre, precio) {
+            document.querySelectorAll('.articulo').forEach(btn => btn.classList.remove('seleccionado'));
+            document.getElementById(`art-${id}`).classList.add('seleccionado');
+            articuloSeleccionado = { id, nombre, precio };
+            document.getElementById('cantidad').value = 1;
+        }
+
+        // Controles de cantidad
+        function sumarCantidad() {
+            document.getElementById('cantidad').value = parseInt(document.getElementById('cantidad').value) + 1;
+        }
+
+        function restarCantidad() {
+            const qty = parseInt(document.getElementById('cantidad').value);
+            if (qty > 1) document.getElementById('cantidad').value = qty - 1;
+        }
+
+        // Agregar al pedido actual
+        function agregarAlPedido() {
+            if (!articuloSeleccionado) {
+                alert('Selecciona un artículo primero');
+                return;
+            }
+            
+            const cantidad = parseInt(document.getElementById('cantidad').value);
+            pedidoActual.push({
+                ...articuloSeleccionado,
+                cantidad,
+                subtotal: articuloSeleccionado.precio * cantidad
+            });
+
+            mostrarResumen();
+            document.getElementById('cantidad').value = 1;
+        }
+
+        // Mostrar resumen del pedido actual
+        function mostrarResumen() {
+            if (pedidoActual.length === 0) {
+                document.getElementById('resumenPedido').style.display = 'none';
+                return;
+            }
+
+            const resumen = document.getElementById('resumen');
+            const total = pedidoActual.reduce((sum, item) => sum + item.subtotal, 0);
+            
+            resumen.innerHTML = pedidoActual.map((item, idx) => `
+                <div class="resumen-item">
+                    <span>${item.nombre} x${item.cantidad}</span>
+                    <span>
+                        <span>${formatearPrecio(item.subtotal)}</span>
+                        <button class="quitar" onclick="eliminarDelPedido(${idx})">Quitar</button>
+                    </span>
+                </div>
+            `).join('');
+            
+            document.getElementById('totalPedido').textContent = formatearPrecio(total);
+            document.getElementById('resumenPedido').style.display = 'block';
+        }
+
+        // Eliminar del pedido actual
+        function eliminarDelPedido(idx) {
+            pedidoActual.splice(idx, 1);
+            mostrarResumen();
+        }
+
+        // Cancelar pedido actual
+        function cancelarPedido() {
+            pedidoActual = [];
+            mostrarResumen();
+            document.querySelectorAll('.articulo').forEach(btn => btn.classList.remove('seleccionado'));
+        }
+
+        // Enviar pedido
+        function enviarPedido() {
+            if (pedidoActual.length === 0) return;
+
+            const pedido = {
+                id: Date.now(),
+                fecha: new Date().toLocaleTimeString(),
+                items: [...pedidoActual],
+                total: pedidoActual.reduce((sum, item) => sum + item.subtotal, 0),
+                completado: false
+            };
+
+            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+            pedidos.push(pedido);
+            localStorage.setItem('pedidos', JSON.stringify(pedidos));
+
+            pedidoActual = [];
+            mostrarResumen();
+            cargarPedidos();
+        }
+
+        // Cargar y mostrar pedidos
+        function cargarPedidos() {
+            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+            const lista = document.getElementById('listaPedidos');
+            
+            if (pedidos.length === 0) {
+                lista.innerHTML = '<div class="sin-pedidos">Sin pedidos aún</div>';
+                return;
+            }
+
+            lista.innerHTML = pedidos.reverse().map((pedido) => `
+                <div class="pedido-item ${pedido.completado ? 'completado' : ''}">
+                    <div class="pedido-header">
+                        <span class="pedido-hora">🕐 ${pedido.fecha}</span>
+                        <div class="pedido-botones">
+                            <button class="completar" onclick="marcarCompleto(${pedido.id})">
+                                ${pedido.completado ? '↩️ Deshacer' : '✓ Hecho'}
+                            </button>
+                            <button class="eliminar" onclick="eliminarPedido(${pedido.id})">🗑️ Eliminar</button>
+                        </div>
+                    </div>
+                    <div class="pedido-items">
+                        ${pedido.items.map(item => `• ${item.nombre} x${item.cantidad}`).join('<br>')}
+                    </div>
+                    <div class="pedido-total">Total: ${formatearPrecio(pedido.total)}</div>
+                </div>
+            `).join('');
+        }
+
+        // Marcar como completado
+        function marcarCompleto(id) {
+            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+            const pedido = pedidos.find(p => p.id === id);
+            if (pedido) pedido.completado = !pedido.completado;
+            localStorage.setItem('pedidos', JSON.stringify(pedidos));
+            cargarPedidos();
+        }
+
+        // Eliminar pedido
+        function eliminarPedido(id) {
+            if (confirm('¿Eliminar este pedido?')) {
+                let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+                pedidos = pedidos.filter(p => p.id !== id);
+                localStorage.setItem('pedidos', JSON.stringify(pedidos));
+                cargarPedidos();
+            }
+        }
+
+        inicializar();
+    </script>
+</body>
+</html>
