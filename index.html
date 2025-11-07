@@ -416,6 +416,8 @@
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
             animation: fadeIn 0.3s ease;
+            overflow-y: auto;
+            padding-top: 20px;
         }
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -423,7 +425,7 @@
         }
         .modal-content {
             background-color: white;
-            margin: 10% auto;
+            margin: 20px auto;
             padding: 20px;
             border-radius: 12px;
             width: 90%;
@@ -456,12 +458,37 @@
             transition: color 0.3s;
         }
         .close-btn:hover { color: #333; }
+        
+        .articulos-actuales {
+            background: #f9f6f1;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .articulos-actuales h4 {
+            color: #8B4513;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .item-actual {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #8B4513;
+        }
+        
         .articulos-editar {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 10px;
             margin: 15px 0;
-            max-height: 300px;
+            max-height: 250px;
             overflow-y: auto;
         }
         button.articulo-editar {
@@ -488,6 +515,18 @@
             align-items: center;
             margin: 15px 0;
         }
+        .cantidad-modal label {
+            font-weight: 600;
+            color: #8B4513;
+        }
+        .cantidad-modal button {
+            padding: 6px 10px;
+            background: #D2B48C;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
         .cantidad-modal input {
             width: 80px;
             padding: 8px;
@@ -499,15 +538,16 @@
             display: flex;
             gap: 10px;
             margin-top: 20px;
+            flex-direction: column;
         }
         button.btn-agregar-modal, button.btn-cancelar-modal {
-            flex: 1;
             padding: 12px;
             border: none;
             border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
+            width: 100%;
         }
         button.btn-agregar-modal {
             background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
@@ -534,7 +574,7 @@
             button.articulo { min-height: 100px; }
             .botones-pedido { flex-direction: column; }
             .pedido-header { flex-direction: column; align-items: flex-start; }
-            .modal-content { width: 95%; margin: 30% auto; }
+            .modal-content { width: 95%; margin: 20px auto; padding: 15px; }
         }
         
         @media (max-width: 400px) {
@@ -598,8 +638,8 @@
             </div>
             <div id="modalCuerpo"></div>
             <div class="modal-botones">
-                <button class="btn-agregar-modal" onclick="agregarAlPedidoEditado()">Agregar Artículo</button>
-                <button class="btn-cancelar-modal" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-agregar-modal" onclick="agregarAlPedidoEditado()">➕ Agregar Artículo</button>
+                <button class="btn-cancelar-modal" onclick="cerrarModal()">❌ Cancelar</button>
             </div>
         </div>
     </div>
@@ -828,16 +868,17 @@
             const modal = document.getElementById('modalEditar');
             const modalCuerpo = document.getElementById('modalCuerpo');
 
-            let html = '<div style="margin-bottom: 15px;"><h4 style="color: #8B4513; margin-bottom: 10px;">Artículos actuales:</h4>';
+            let html = '<div class="articulos-actuales">';
+            html += '<h4>🛒 Artículos actuales:</h4>';
             html += pedido.items.map((item, idx) => `
-                <div style="background: #f0f0f0; padding: 10px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                    <span><strong>${item.nombre}</strong> x${item.cantidad}</span>
+                <div class="item-actual">
+                    <span><strong>${item.nombre}</strong> x${item.cantidad} - ${formatearPrecio(item.subtotal)}</span>
                     <button class="quitar" onclick="eliminarDelPedidoEditado(${idx})">Quitar</button>
                 </div>
             `).join('');
             html += '</div>';
 
-            html += '<h4 style="color: #8B4513; margin: 15px 0 10px;">Agregar artículo:</h4>';
+            html += '<h4 style="color: #8B4513; margin: 15px 0 10px; font-weight: 600;">➕ Agregar artículo:</h4>';
             html += '<div class="articulos-editar">';
             
             for (let categoria in ARTICULOS) {
@@ -853,9 +894,9 @@
 
             html += `<div class="cantidad-modal">
                 <label>Cantidad:</label>
-                <button onclick="restarCantidadEditando()" style="padding: 6px 10px; background: #D2B48C; color: white; border: none; border-radius: 4px; cursor: pointer;">−</button>
+                <button onclick="restarCantidadEditando()">−</button>
                 <input type="number" id="cantidadEditando" value="1" min="1">
-                <button onclick="sumarCantidadEditando()" style="padding: 6px 10px; background: #D2B48C; color: white; border: none; border-radius: 4px; cursor: pointer;">+</button>
+                <button onclick="sumarCantidadEditando()">+</button>
             </div>`;
 
             modalCuerpo.innerHTML = html;
@@ -888,7 +929,6 @@
             const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
             const pedido = pedidos.find(p => p.id === pedidoEditandoId);
 
-            // Encontrar el artículo
             let articuloNombre = '', articuloPrecio = 0;
             for (let categoria in ARTICULOS) {
                 const art = ARTICULOS[categoria].find(a => a.id === articuloEditandoId);
