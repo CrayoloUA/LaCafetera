@@ -686,7 +686,15 @@
     <script>
         // 🔒 SISTEMA DE SEGURIDAD
 // Hash de la contraseña
-const HASH_EMPLEADOS = "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92";
+// 🔒 SISTEMA DE SEGURIDAD CON FIREBASE
+const configRef = database.ref('config');
+let passwordHashGuardado = null;
+
+// Cargar el hash desde Firebase
+configRef.child('passwordHash').once('value', (snapshot) => {
+    passwordHashGuardado = snapshot.val();
+    console.log('Hash cargado desde Firebase');
+});
 
 async function hashPassword(password) {
     const encoder = new TextEncoder();
@@ -706,9 +714,15 @@ async function verificarAcceso() {
         return;
     }
     
+    if (!passwordHashGuardado) {
+        errorDiv.textContent = 'Cargando... Intenta de nuevo';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
     const hashIngresado = await hashPassword(password);
     
-    if (hashIngresado === HASH_EMPLEADOS) {
+    if (hashIngresado === passwordHashGuardado) {
         sessionStorage.setItem('accesoPermitido', 'true');
         document.getElementById('loginScreen').style.display = 'none';
         errorDiv.style.display = 'none';
@@ -718,14 +732,6 @@ async function verificarAcceso() {
         document.getElementById('loginPassword').value = '';
     }
 }
-
-// Verificar si ya hay sesión activa al cargar la página
-if (sessionStorage.getItem('accesoPermitido') !== 'true') {
-    document.getElementById('loginScreen').style.display = 'flex';
-} else {
-    document.getElementById('loginScreen').style.display = 'none';
-}
-// FIN SISTEMA DE SEGURIDAD
 
 
         const ARTICULOS = {
