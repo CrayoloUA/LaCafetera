@@ -584,6 +584,54 @@
             .cantidad-control label { width: 100%; }
             .articulos-editar { grid-template-columns: repeat(2, 1fr); }
         }
+        .filtros-fecha {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filtro-btn {
+    padding: 10px 20px;
+    background: #f5f0e8;
+    border: 2px solid #D2B48C;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.filtro-btn:hover {
+    background: #D2B48C;
+    color: white;
+}
+
+.filtro-btn.activo {
+    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+    color: white;
+    border-color: #8B4513;
+}
+
+.fecha-separador {
+    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 0 10px 0;
+    font-weight: bold;
+    font-size: 18px;
+    text-align: center;
+}
+
+.pedido-completado {
+    opacity: 0.7;
+    border-left: 5px solid #4CAF50;
+}
+
+.pedido-activo {
+    border-left: 5px solid #ff4444;
+}
+
     </style>
 </head>
 <body>
@@ -607,7 +655,12 @@
             <h1>☕ La Cafetera</h1>
             <p class="subtitulo">Sistema de Comandas</p>
         </div>
-        
+        <div class="seccion">
+    <h2>🪑 Número de Mesa</h2>
+    <input type="text" id="numeroMesa" placeholder="Ej: Mesa 1, Terraza, A5..." style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #D2B48C; border-radius: 8px; font-size: 16px;">
+    <div id="mesaError" style="color: red; margin-bottom: 10px; display: none; font-weight: bold;"></div>
+</div>
+
         <div class="seccion">
             <h2>📂 Selecciona Categoría</h2>
             <div class="categorias" id="categorias"></div>
@@ -639,10 +692,16 @@
         </div>
         
         <div class="lista-pedidos">
-            <h2>📋 Historial de Pedidos</h2>
-            <div id="listaPedidos"></div>
-        </div>
+           <div class="lista-pedidos">
+    <h2>📋 Historial de Pedidos</h2>
+    
+    <div class="filtros-fecha">
+        <button class="filtro-btn activo" onclick="filtrarPorFecha('hoy')">Hoy</button>
+        <button class="filtro-btn" onclick="filtrarPorFecha('ayer')">Ayer</button>
+        <button class="filtro-btn" onclick="filtrarPorFecha('semana')">Esta Semana</button>
+        <button class="filtro-btn" onclick="filtrarPorFecha('todo')">Todo</button>
     </div>
+
 
     <!-- Modal para editar pedidos -->
     <div id="modalEditar" class="modal">
@@ -729,7 +788,7 @@ function verificarAcceso() {
                 { id: 12, nombre: 'Cappuccino Caramelo', precio: 12800 },
                 { id: 13, nombre: 'Cappuccino Amaretto', precio: 15800 },
                 { id: 14, nombre: 'Café Bombón', precio: 11800 },
-                { id: 15, nombre: 'Café Vienés', precio: 12800 },
+                { id: 15, nombre: 'Café Vienés', precio: 10800 },
                 { id: 16, nombre: 'Chai Latte', precio: 10800 },
             ],
             'Bebidas Frías': [
@@ -879,24 +938,99 @@ function verificarAcceso() {
             mostrarResumen();
             document.querySelectorAll('.articulo').forEach(btn => btn.classList.remove('seleccionado'));
         }
+function calcularTotal() {
+    return pedidoActual.reduce((sum, item) => sum + item.subtotal, 0);
+}
 
-     function enviarPedido() {
-    if (pedidoActual.length === 0) return;
-
-    const pedido = {
-        fecha: new Date().toLocaleTimeString(),
-        timestamp: Date.now(),
-        items: [...pedidoActual],
-        total: pedidoActual.reduce((sum, item) => sum + item.subtotal, 0),
-        completado: false,
-        tiempoEntrega: null
-    };
-
-    pedidosRef.push(pedido);  // ← Firebase
-
-    pedidoActual = [];
+function actualizarResumen() {
     mostrarResumen();
 }
+
+   function enviarPedido() {
+    const numeroMesa = document.getElementById('numeroMesa').value.trim();
+    const mesaError = document.getElementById('mesaError');
+    
+    if (!numeroMesa) {
+        mesaError.textContent = '⚠️ Por favor ingresa el número de mesa';
+        mesaError.style.display = 'block';
+        return;
+    }
+    
+    if (pedidoActual.length === 0) {
+        alert('❌ No hay artículos en el pedido');
+        return;
+    }
+    
+    // Verificar si la mesa está ocupada
+    pedidosRef.once('value', (snapshot) => {
+        const pedidos = snapshot.val();
+        let mesaOcupada = false;
+        
+        if (pedidos) {
+            Object.values(pedidos).forEach(pedido => {
+                if (pedido.mesa && pedido.mesa.toLowerCase() === numeroMesa.toLowerCase() && pedido.estado === 'pendiente') {
+                    mesaOcupada = true;
+                }
+            });
+        }
+        
+        if (mesaOcupada) {
+            mesaError.textContent = `⚠️ La mesa "${numeroMesa}" ya está ocupada`;
+            mesaError.style.display = 'block';
+            return;
+        }
+        
+        mesaError.style.display = 'none';
+        
+        // Continuar con el envío del pedido
+        enviarPedidoConfirmado(numeroMesa);
+    });
+}
+function enviarPedidoConfirmado(numeroMesa) {
+    const ahora = new Date();
+    const tiempo = ahora.toLocaleTimeString('es-CO', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    
+    const fecha = ahora.toLocaleDateString('es-CO', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+    
+    const fechaCompleta = ahora.toISOString();
+
+    const tiempoEntrega = new Date(ahora.getTime() + 15 * 60000);
+    const horaEntrega = tiempoEntrega.toLocaleTimeString('es-CO', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    const pedidoFinal = {
+        items: pedidoActual,
+        total: pedidoActual.reduce((sum, item) => sum + item.subtotal, 0),
+        fecha: tiempo,
+        fechaCompleta: fechaCompleta,
+        fechaSimple: fecha,
+        tiempoEntrega: horaEntrega,
+        estado: 'pendiente',
+        mesa: numeroMesa
+    };
+
+    pedidosRef.push(pedidoFinal)
+        .then(() => {
+            alert(`✅ Pedido enviado con éxito!\n🪑 Mesa: ${numeroMesa}`);
+            pedidoActual = [];
+            document.getElementById('numeroMesa').value = '';
+            mostrarResumen();
+        })
+        .catch((error) => {
+            alert('❌ Error al enviar: ' + error.message);
+        });
+}
+
 
 
 function cargarPedidos() {
