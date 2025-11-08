@@ -913,11 +913,14 @@ function verificarAcceso() {
         renderizarCategorias();
         renderizarArticulos();
         cargarPedidos();
+        cargarEstadoMesas();
+    pedidosRef.on('value', () => {
+        cargarEstadoMesas();
     }
 }
-        let filtroActual = 'hoy'; // Si no la tienes, agrégala arriba
+let filtroActual = 'hoy'; // Si no la tienes, agrégala aquí
 
-const NUMERO_DE_MESAS = 20; // Puedes poner el número que prefieras
+const NUMERO_DE_MESAS = 20;
 let mesasOcupadas = [];
 let mesaSeleccionada = null;
 
@@ -1068,13 +1071,13 @@ function actualizarResumen() {
 }
 
 function enviarPedido() {
-    const numeroMesa = document.getElementById('mesaSeleccionada').value;
-    const mesaError = document.getElementById('mesaError');
-    if (!numeroMesa) {
-        mesaError.textContent = 'Debes seleccionar una mesa';
-        mesaError.style.display = 'block';
-        return;
-    }
+ const numeroMesa = document.getElementById('mesaSeleccionada').value;
+const mesaError = document.getElementById('mesaError');
+if (!numeroMesa) {
+    mesaError.textContent = 'Debes seleccionar una mesa';
+    mesaError.style.display = 'block';
+    return;
+}
     if (pedidoActual.length === 0) {
         alert('❌ No hay artículos en el pedido');
         return;
