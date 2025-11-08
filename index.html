@@ -1170,21 +1170,21 @@ function cargarPedidos() {
 }
 
 function mostrarPedidos(pedidos) {
-    const lista = document.getElementById('listaPedidos');
-    
+    const lista = document.getElementById('listaPedidos'); // Usa el id de tu contenedor real
     if (pedidos.length === 0) {
-        lista.innerHTML = '<div class="sin-pedidos">Sin pedidos aún</div>';
+        lista.innerHTML = '<div style="margin:20px 0;color:#a00;font-weight:bold;">No hay pedidos registrados.</div>';
         return;
     }
+    lista.innerHTML = pedidos.map(pedido => `
+        <div class="pedido-item" style="margin-bottom:18px;padding:12px 14px;background:#f7f7f7;border-radius:9px;">
+            <div><b>Mesa:</b> ${pedido.mesa}</div>
+            <div><b>Estado:</b> ${pedido.estado || '-'}</div>
+            <div><b>Items:</b> ${pedido.items ? pedido.items.map(it=>it.nombre + ' x'+it.cantidad).join(', ') : '-'}</div>
+            <div><b>Fecha:</b> ${pedido.fecha || '-'}</div>
+        </div>
+    `).join('');
+}
 
-    lista.innerHTML = pedidos.reverse().map((pedido) => {
-        let tiempoHTML = '';
-        if (pedido.completado && pedido.tiempoEntrega) {
-            const mins = Math.floor(pedido.tiempoEntrega / 60);
-            const secs = pedido.tiempoEntrega % 60;
-            const tiempo = mins > 0 ? `${mins} min ${secs} seg` : `${secs} seg`;
-            tiempoHTML = `<div style="background: #4CAF50; color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; display: inline-block; margin-top: 8px;">⏱️ Tiempo: ${tiempo}</div>`;
-        }
         
         return `
             <div class="pedido-item ${pedido.completado ? 'completado' : ''}">
