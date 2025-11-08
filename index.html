@@ -1254,7 +1254,7 @@ function mostrarPedidos(pedidos) {
     return;
   }
 
-  lista.innerHTML = pedidos.reverse().map(pedido => {
+  lista.innerHTML = pedidos.map(pedido => {
     let estadoTexto = '';
     let estadoColor = '';
     let botonTexto = '';
