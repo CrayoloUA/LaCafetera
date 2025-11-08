@@ -711,42 +711,6 @@ function verificarAcceso() {
 }
 
 
-async function hashPassword(password) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hash = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hash));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function verificarAcceso() {
-    const password = document.getElementById('loginPassword').value;
-    const errorDiv = document.getElementById('loginError');
-    
-    if (!password) {
-        errorDiv.textContent = 'Por favor ingresa la contraseña';
-        errorDiv.style.display = 'block';
-        return;
-    }
-    
-    if (!passwordHashGuardado) {
-        errorDiv.textContent = 'Cargando... Intenta de nuevo';
-        errorDiv.style.display = 'block';
-        return;
-    }
-    
-    const hashIngresado = await hashPassword(password);
-    
-    if (hashIngresado === passwordHashGuardado) {
-        sessionStorage.setItem('accesoPermitido', 'true');
-        document.getElementById('loginScreen').style.display = 'none';
-        errorDiv.style.display = 'none';
-    } else {
-        errorDiv.textContent = 'Contraseña incorrecta';
-        errorDiv.style.display = 'block';
-        document.getElementById('loginPassword').value = '';
-    }
-}
 
 
         const ARTICULOS = {
@@ -1132,23 +1096,7 @@ window.onclick = function(event) {
         if (sessionStorage.getItem('accesoPermitido') === 'true') {
             inicializar();
         }
-        // Deshabilitar el botón hasta que Firebase cargue
-window.addEventListener('DOMContentLoaded', function() {
-    const btn = document.getElementById('btnEntrar');
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Cargando...';
-        btn.style.opacity = '0.6';
-        btn.style.cursor = 'not-allowed';
-    }
-});
-
-// Verificar si ya hay sesión activa al cargar la página
-if (sessionStorage.getItem('accesoPermitido') !== 'true') {
-    document.getElementById('loginScreen').style.display = 'flex';
-} else {
-    document.getElementById('loginScreen').style.display = 'none';
-}
+      
 
     </script>
 </body>
