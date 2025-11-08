@@ -587,6 +587,21 @@
     </style>
 </head>
 <body>
+     <div id="loginScreen" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%); z-index: 9999; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); max-width: 400px; width: 90%;">
+            <h2 style="text-align: center; color: #8B4513; margin-bottom: 20px;">☕ La Cafetera</h2>
+            <h3 style="text-align: center; color: #666; margin-bottom: 30px; font-size: 18px;">Acceso para Empleados</h3>
+            
+            <input type="password" id="loginPassword" placeholder="Contraseña" style="width: 100%; padding: 14px; margin-bottom: 20px; border: 2px solid #D2B48C; border-radius: 8px; font-size: 16px;">
+            
+            <button onclick="verificarAcceso()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;">
+                Entrar
+            </button>
+            
+            <div id="loginError" style="color: red; text-align: center; margin-top: 15px; display: none; font-weight: bold;">Contraseña incorrecta</div>
+        </div>
+    </div>
+    
     <div class="container">
         <div class="header">
             <h1>☕ La Cafetera</h1>
@@ -643,6 +658,8 @@
             </div>
         </div>
     </div>
+
+  
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -663,8 +680,54 @@
       const database = firebase.database();
       const pedidosRef = database.ref('pedidos');
     </script>
-
+    
+ 
+    
     <script>
+        // 🔒 SISTEMA DE SEGURIDAD
+// Hash de la contraseña
+const HASH_EMPLEADOS = "b5e0d8f9a2c3e4f6d7b1a8c9e2f5d3b6a4c7e9f1d2b8a5c6e3f7d4b9a1c8e2f5";
+
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hash));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function verificarAcceso() {
+    const password = document.getElementById('loginPassword').value;
+    const errorDiv = document.getElementById('loginError');
+    
+    if (!password) {
+        errorDiv.textContent = 'Por favor ingresa la contraseña';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    const hashIngresado = await hashPassword(password);
+    
+    if (hashIngresado === HASH_EMPLEADOS) {
+        sessionStorage.setItem('accesoPermitido', 'true');
+        document.getElementById('loginScreen').style.display = 'none';
+        errorDiv.style.display = 'none';
+    } else {
+        errorDiv.textContent = 'Contraseña incorrecta';
+        errorDiv.style.display = 'block';
+        document.getElementById('loginPassword').value = '';
+    }
+}
+
+// Verificar si ya hay sesión activa al cargar la página
+if (sessionStorage.getItem('accesoPermitido') !== 'true') {
+    document.getElementById('loginScreen').style.display = 'flex';
+} else {
+    document.getElementById('loginScreen').style.display = 'none';
+}
+// FIN SISTEMA DE SEGURIDAD
+
+
         const ARTICULOS = {
             'Bebidas Calientes': [
                 { id: 1, nombre: 'Espresso', precio: 5500 },
@@ -727,11 +790,14 @@
             return precio.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
         }
 
-        function inicializar() {
-            renderizarCategorias();
-            renderizarArticulos();
-            cargarPedidos();
-        }
+    function inicializar() {
+    // Solo inicializar si tiene acceso
+    if (sessionStorage.getItem('accesoPermitido') === 'true') {
+        renderizarCategorias();
+        renderizarArticulos();
+        cargarPedidos();
+    }
+}
 
         function renderizarCategorias() {
             const contenedor = document.getElementById('categorias');
@@ -1041,6 +1107,10 @@ window.onclick = function(event) {
 }
 
 
+         // Solo inicializar si está autenticado
+        if (sessionStorage.getItem('accesoPermitido') === 'true') {
+            inicializar();
+        }
     </script>
 </body>
 </html>
