@@ -698,6 +698,60 @@
     color: white;
     border-color: #8B4513;
 }
+.pedido-botones {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+.pedido-botones button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  user-select: none;
+}
+
+/* Botón Editar */
+.pedido-botones button:nth-child(1) {
+  background-color: #f0ad4e;
+  color: #fff;
+}
+
+.pedido-botones button:nth-child(1):hover {
+  background-color: #ec971f;
+}
+
+/* Botón Completar - depende del estado */
+.pedido-botones button:nth-child(2) {
+  background-color: #5cb85c;
+  color: #fff;
+}
+
+.pedido-botones button:nth-child(2).deshacer {
+  background-color: #d9534f;
+}
+
+.pedido-botones button:nth-child(2):hover {
+  background-color: #4cae4c;
+}
+
+.pedido-botones button:nth-child(2).deshacer:hover {
+  background-color: #c9302c;
+}
+
+/* Botón Eliminar */
+.pedido-botones button:nth-child(3) {
+  background-color: #d9534f;
+  color: #fff;
+}
+
+.pedido-botones button:nth-child(3):hover {
+  background-color: #c9302c;
+}
 
     </style>
 </head>
@@ -924,18 +978,21 @@ let mesasOcupadas = [];
 let mesaSeleccionada = null;
 
 function cargarEstadoMesas() {
-    pedidosRef.once('value', (snapshot) => {
-        const pedidos = snapshot.val();
-        mesasOcupadas = [];
-        if (pedidos) {
-            Object.values(pedidos).forEach(pedido => {
-                if (pedido.estado === 'pendiente' && pedido.mesa) {
-                    mesasOcupadas.push(parseInt(pedido.mesa));
-                }
-            });
+  pedidosRef.on('value', (snapshot) => {
+    const pedidos = snapshot.val();
+    mesasOcupadas = []; // Reiniciar
+    
+    if (pedidos) {
+      Object.values(pedidos).forEach(pedido => {
+        // La mesa DEBE estar ocupada si el pedido es "pendiente" O "preparado"
+        // Solo se libera cuando es "pagado"
+        if ((pedido.estado === 'pendiente' || pedido.estado === 'preparado') && pedido.mesa) {
+          mesasOcupadas.push(parseInt(pedido.mesa));
         }
-        renderizarMesas();
-    });
+      });
+    }
+    renderizarMesas();
+  });
 }
 
 function renderizarMesas() {
@@ -1107,6 +1164,24 @@ if (!numeroMesa) {
         enviarPedidoConfirmado(numeroMesa);
     });
 }
+
+function formatearTiempo(segundos) {
+  if (!segundos) return '-';
+  
+  const horas = Math.floor(segundos / 3600);
+  const minutos = Math.floor((segundos % 3600) / 60);
+  const segs = segundos % 60;
+
+  if (horas > 0) {
+    return `${horas}h ${minutos}m`;
+  } else if (minutos > 0) {
+    return `${minutos}m ${segs}s`;
+  } else {
+    return `${segs}s`;
+  }
+}
+
+        
 function enviarPedidoConfirmado(numeroMesa) {
     const ahora = new Date();
     const tiempo = ahora.toLocaleTimeString('es-CO', {
@@ -1129,16 +1204,20 @@ function enviarPedidoConfirmado(numeroMesa) {
         minute: '2-digit'
     });
 
-    const pedidoFinal = {
-        items: pedidoActual,
-        total: pedidoActual.reduce((sum, item) => sum + item.subtotal, 0),
-        fecha: tiempo,
-        fechaCompleta: fechaCompleta,
-        fechaSimple: fecha,
-        tiempoEntrega: horaEntrega,
-        estado: 'pendiente',
-        mesa: numeroMesa
-    };
+const pedidoFinal = {
+    items: pedidoActual,
+    total: pedidoActual.reduce((sum, item) => sum + item.subtotal, 0),
+    fecha: tiempo,
+    fechaCompleta: fechaCompleta,
+    fechaSimple: fecha,
+    tiempoEntrega: horaEntrega,
+    estado: 'pendiente',  // ← Cambio: "pendiente" en lugar de "completado"
+    mesa: numeroMesa,
+    timestamp: Date.now(),
+    tiempoPreparacion: null
+};
+
+
 
     pedidosRef.push(pedidoFinal)
       .then(() => {
@@ -1171,23 +1250,124 @@ function cargarPedidos() {
 function mostrarPedidos(pedidos) {
   const lista = document.getElementById('listaPedidos');
   if (!pedidos || pedidos.length === 0) {
-    lista.innerHTML = '<div>No hay pedidos</div>';
+    lista.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">📋 Sin pedidos</div>';
     return;
   }
 
-  lista.innerHTML = pedidos.map(pedido => `
-    <div class="pedido-item">
-      <div><b>Mesa:</b> ${pedido.mesa || '-'}</div>
-      <div><b>Estado:</b> ${pedido.estado || '-'}</div>
-      <div><b>Items:</b> ${pedido.items ? pedido.items.map(i => i.nombre + ' x' + i.cantidad).join(', ') : '-'}</div>
-      <div><b>Fecha:</b> ${pedido.fecha || '-'}</div>
-      <div class="pedido-botones">
-        <button onclick="abrirModalEditar('${pedido.key}')">✏️ Editar</button>
-        <button onclick="marcarCompleto('${pedido.key}', ${pedido.timestamp}, ${pedido.completado})">${pedido.completado ? '↩️ Deshacer' : '✓ Hecho'}</button>
-        <button onclick="eliminarPedido('${pedido.key}')">🗑️ Eliminar</button>
+  lista.innerHTML = pedidos.reverse().map(pedido => {
+    let estadoTexto = '';
+    let estadoColor = '';
+    let botonTexto = '';
+    let botonColor = '';
+    let mostrarBoton = true;
+
+    // Definir estados y colores
+    if (pedido.estado === 'pendiente') {
+      estadoTexto = '⏳ PENDIENTE';
+      estadoColor = '#ff6b6b';
+      botonTexto = '✓ PREPARADO';
+      botonColor = '#5cb85c';
+    } else if (pedido.estado === 'preparado') {
+      estadoTexto = '🍽️ PREPARADO';
+      estadoColor = '#ffc107';
+      botonTexto = '💵 PAGADO';
+      botonColor = '#0275d8';
+    } else if (pedido.estado === 'pagado') {
+      estadoTexto = '✔️ PAGADO';
+      estadoColor = '#28a745';
+      botonTexto = '✔️ PAGADO';
+      mostrarBoton = false; // NO mostrar botón si ya está pagado
+    }
+
+    return `
+      <div class="pedido-item" style="
+        border-left: 5px solid ${estadoColor};
+        background: ${pedido.estado === 'pagado' ? '#f0f8f0' : '#fff'};
+        margin: 12px 0;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      ">
+        <!-- Encabezado con Mesa y Hora -->
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+          <div style="font-weight: bold; font-size: 16px;">🪑 Mesa: ${pedido.mesa}</div>
+          <div style="color: #999; font-size: 13px;">🕐 ${pedido.fecha}</div>
+        </div>
+
+        <!-- Estado del Pedido -->
+        <div style="background: ${estadoColor}; color: white; padding: 8px 12px; border-radius: 6px; font-weight: bold; margin-bottom: 10px; text-align: center;">
+          ${estadoTexto}
+        </div>
+
+        <!-- Items del Pedido -->
+        <div style="margin: 10px 0; padding: 10px; background: #f9f9f9; border-radius: 6px;">
+          <strong style="color: #333;">📝 Items:</strong>
+          <div style="margin-top: 6px; color: #666;">
+            ${pedido.items ? pedido.items.map(i => `• ${i.nombre} x${i.cantidad}`).join('<br>') : 'N/A'}
+          </div>
+        </div>
+
+        <!-- Tiempo de Preparación -->
+        ${pedido.tiempoPreparacion ? `
+          <div style="background: #e7f5e7; padding: 8px 12px; border-radius: 6px; margin: 10px 0; text-align: center;">
+            <strong style="color: #28a745;">⏱️ Tiempo: ${formatearTiempo(pedido.tiempoPreparacion)}</strong>
+          </div>
+        ` : ''}
+
+        <!-- Total -->
+        <div style="margin: 10px 0; font-weight: bold; font-size: 16px; color: #8B4513;">
+          💰 Total: $${pedido.total.toLocaleString()}
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="pedido-botones" style="display: flex; gap: 8px; margin-top: 12px;">
+          <button onclick="abrirModalEditar('${pedido.key}')" style="
+            flex: 1;
+            padding: 10px;
+            background: #ffc107;
+            color: #333;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+          " onmouseover="this.style.background='#ffb300'" onmouseout="this.style.background='#ffc107'">
+            ✏️ Editar
+          </button>
+
+          ${mostrarBoton ? `
+            <button onclick="cambiarEstadoPedido('${pedido.key}', '${pedido.estado}', ${pedido.timestamp})" style="
+              flex: 1;
+              padding: 10px;
+              background: ${botonColor};
+              color: white;
+              border: none;
+              border-radius: 6px;
+              font-weight: bold;
+              cursor: pointer;
+              transition: 0.3s;
+            " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+              ${botonTexto}
+            </button>
+          ` : ''}
+
+          <button onclick="eliminarPedido('${pedido.key}')" style="
+            flex: 1;
+            padding: 10px;
+            background: #d9534f;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+          " onmouseover="this.style.background='#c9302c'" onmouseout="this.style.background='#d9534f'">
+            🗑️ Eliminar
+          </button>
+        </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
         
@@ -1309,16 +1489,54 @@ function eliminarPedido(key) {
         pedidosRef.child(key).remove();
     }
 }
-        function marcarCompleto(key, timestamp, completado) {
-    let tiempoEntrega = null;
-    if (!completado) {
-        tiempoEntrega = Math.floor((Date.now() - timestamp) / 1000);
+function cambiarEstadoPedido(key, estadoActual, timestamp) {
+  console.log('Click - Key:', key, 'Estado:', estadoActual);
+  
+  let nuevoEstado;
+  let actualizacion = {};
+
+  if (estadoActual === 'pendiente') {
+    nuevoEstado = 'preparado';
+    let tiempoPreparacion = Math.floor((Date.now() - timestamp) / 1000);
+    actualizacion = {
+      estado: nuevoEstado,
+      tiempoPreparacion: tiempoPreparacion  // Solo setea si hay valor
+    };
+  } else if (estadoActual === 'preparado') {
+    nuevoEstado = 'pagado';
+    actualizacion = {
+      estado: nuevoEstado
+      // NO incluyas tiempoPreparacion aquí, déjalo como está
+    };
+  } else {
+    return;
+  }
+
+  pedidosRef.child(key).update(actualizacion).then(() => {
+    console.log('✅ Actualizado a:', nuevoEstado);
+    if (nuevoEstado === 'pagado') {
+      liberarMesaPedido(key);
+      alert('✅ Mesa liberada!');
     }
-    
-    pedidosRef.child(key).update({
-        completado: !completado,
-        tiempoEntrega: tiempoEntrega
-    });
+    cargarPedidos();
+    cargarEstadoMesas();
+  }).catch(error => {
+    console.error('Error:', error);
+    alert('❌ Error: ' + error.message);
+  });
+}
+
+
+// Ejemplo función para liberar mesa cuando pedido completado
+function liberarMesaPedido(keyPedido) {
+  pedidosRef.child(keyPedido).once('value', snapshot => {
+    const pedido = snapshot.val();
+    if (pedido && pedido.mesa) {
+      // Aquí se marca la mesa como libre
+      mesasOcupadas = mesasOcupadas.filter(mesa => mesa !== parseInt(pedido.mesa));
+      renderizarMesas(); // Esto debe actualizar visualmente la mesa como disponible
+    }
+  });
 }
 
 function cerrarModal() {
