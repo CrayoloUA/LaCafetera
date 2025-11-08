@@ -686,25 +686,30 @@
     <script>
         // 🔒 SISTEMA DE SEGURIDAD
 // Hash de la contraseña
-// 🔒 SISTEMA DE SEGURIDAD CON FIREBASE
-const configRef = database.ref('config');
-let passwordHashGuardado = null;
+// 🔒 SISTEMA DE SEGURIDAD SIMPLE
+const PASS = "lacafetera";  // ← Cambia esto por lo que quieras
 
-// Cargar el hash desde Firebase
-// Cargar el hash desde Firebase
-configRef.child('passwordHash').once('value', (snapshot) => {
-    passwordHashGuardado = snapshot.val();
-    console.log('Hash cargado desde Firebase');
+function verificarAcceso() {
+    const password = document.getElementById('loginPassword').value;
+    const errorDiv = document.getElementById('loginError');
     
-    // Habilitar el botón cuando esté listo
-    const btn = document.getElementById('btnEntrar');
-    if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'Entrar';
-        btn.style.opacity = '1';
-        btn.style.cursor = 'pointer';
+    if (!password) {
+        errorDiv.textContent = 'Por favor ingresa la contraseña';
+        errorDiv.style.display = 'block';
+        return;
     }
-});
+    
+    if (password === PASS) {
+        sessionStorage.setItem('accesoPermitido', 'true');
+        document.getElementById('loginScreen').style.display = 'none';
+        errorDiv.style.display = 'none';
+    } else {
+        errorDiv.textContent = 'Contraseña incorrecta';
+        errorDiv.style.display = 'block';
+        document.getElementById('loginPassword').value = '';
+    }
+}
+
 
 async function hashPassword(password) {
     const encoder = new TextEncoder();
