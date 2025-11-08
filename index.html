@@ -1160,31 +1160,32 @@ function enviarPedidoConfirmado(numeroMesa) {
 
 
 function cargarPedidos() {
-    pedidosRef.on('value', (snapshot) => {
-        const pedidos = [];
-        snapshot.forEach(childSnapshot => {
-            pedidos.push({ key: childSnapshot.key, ...childSnapshot.val() });
-        });
-        mostrarPedidos(pedidos);
+  pedidosRef.on('value', (snapshot) => {
+    const pedidos = [];
+    snapshot.forEach(childSnapshot => {
+      pedidos.push({ key: childSnapshot.key, ...childSnapshot.val() });
     });
+    mostrarPedidos(pedidos);
+  });
 }
 
+
 function mostrarPedidos(pedidos) {
-    const lista = document.getElementById('listaPedidos');
+  const lista = document.getElementById('listaPedidos');
 
-    if (!pedidos || pedidos.length === 0) {
-        lista.innerHTML = '<p>No hay pedidos para mostrar.</p>';
-        return;
-    }
+  if (!pedidos || pedidos.length === 0) {
+    lista.innerHTML = '<div style="margin:20px 0; color:#a00; font-weight:bold;">No hay pedidos para mostrar.</div>';
+    return;
+  }
 
-    lista.innerHTML = pedidos.map(pedido => `
-        <div class="pedido-item">
-            <div><strong>Mesa:</strong> ${pedido.mesa}</div>
-            <div><strong>Estado:</strong> ${pedido.estado}</div>
-            <div><strong>Productos:</strong> ${pedido.items.map(i => i.nombre + ' x ' + i.cantidad).join(', ')}</div>
-            <div><strong>Fecha:</strong> ${pedido.fecha}</div>
-        </div>
-    `).join('');
+  lista.innerHTML = pedidos.map(pedido => `
+    <div class="pedido-item" style="margin-bottom: 20px; padding: 12px; border-radius: 8px; background: #f3f3f3;">
+      <div><strong>Mesa:</strong> ${pedido.mesa || 'N/A'}</div>
+      <div><strong>Estado:</strong> ${pedido.estado || 'N/A'}</div>
+      <div><strong>Productos:</strong> ${pedido.items ? pedido.items.map(i => i.nombre + ' x' + i.cantidad).join(', ') : 'N/A'}</div>
+      <div><strong>Fecha:</strong> ${pedido.fecha || 'N/A'}</div>
+    </div>
+  `).join('');
 }
 
         
