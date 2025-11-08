@@ -833,6 +833,7 @@ function verificarAcceso() {
     sessionStorage.setItem('accesoPermitido', 'true');
     document.getElementById('loginScreen').style.display = 'none';
     errorDiv.style.display = 'none';
+    inicializar();
   } else {
     errorDiv.textContent = 'Contraseña incorrecta';
     errorDiv.style.display = 'block';
@@ -1161,15 +1162,13 @@ function enviarPedidoConfirmado(numeroMesa) {
 function cargarPedidos() {
     pedidosRef.on('value', (snapshot) => {
         const pedidos = [];
-        snapshot.forEach((childSnapshot) => {
-            pedidos.push({
-                key: childSnapshot.key,
-                ...childSnapshot.val()
-            });
+        snapshot.forEach(childSnapshot => {
+            pedidos.push({ key: childSnapshot.key, ...childSnapshot.val() });
         });
         mostrarPedidos(pedidos);
     });
 }
+
 function mostrarPedidos(pedidos) {
     const lista = document.getElementById('listaPedidos');
     
