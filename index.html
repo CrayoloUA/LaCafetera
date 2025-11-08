@@ -819,7 +819,7 @@
         // 🔒 SISTEMA DE SEGURIDAD
 // Hash de la contraseña
 // 🔒 SISTEMA DE SEGURIDAD SIMPLE
-const PASS = "lacafetera";  // ← Cambia esto por lo que quieras
+const PASS = "lacafetera";
 
 function verificarAcceso() {
   const password = document.getElementById('loginPassword').value;
@@ -840,8 +840,6 @@ function verificarAcceso() {
     document.getElementById('loginPassword').value = '';
   }
 }
-
-
 
 
 
@@ -1172,44 +1170,27 @@ function cargarPedidos() {
 
 function mostrarPedidos(pedidos) {
   const lista = document.getElementById('listaPedidos');
-
   if (!pedidos || pedidos.length === 0) {
-    lista.innerHTML = '<div style="margin:20px 0; color:#a00; font-weight:bold;">No hay pedidos para mostrar.</div>';
+    lista.innerHTML = '<div>No hay pedidos</div>';
     return;
   }
 
   lista.innerHTML = pedidos.map(pedido => `
-    <div class="pedido-item" style="margin-bottom: 20px; padding: 12px; border-radius: 8px; background: #f3f3f3;">
-      <div><strong>Mesa:</strong> ${pedido.mesa || 'N/A'}</div>
-      <div><strong>Estado:</strong> ${pedido.estado || 'N/A'}</div>
-      <div><strong>Productos:</strong> ${pedido.items ? pedido.items.map(i => i.nombre + ' x' + i.cantidad).join(', ') : 'N/A'}</div>
-      <div><strong>Fecha:</strong> ${pedido.fecha || 'N/A'}</div>
+    <div class="pedido-item">
+      <div><b>Mesa:</b> ${pedido.mesa || '-'}</div>
+      <div><b>Estado:</b> ${pedido.estado || '-'}</div>
+      <div><b>Items:</b> ${pedido.items ? pedido.items.map(i => i.nombre + ' x' + i.cantidad).join(', ') : '-'}</div>
+      <div><b>Fecha:</b> ${pedido.fecha || '-'}</div>
+      <div class="pedido-botones">
+        <button onclick="abrirModalEditar('${pedido.key}')">✏️ Editar</button>
+        <button onclick="marcarCompleto('${pedido.key}', ${pedido.timestamp}, ${pedido.completado})">${pedido.completado ? '↩️ Deshacer' : '✓ Hecho'}</button>
+        <button onclick="eliminarPedido('${pedido.key}')">🗑️ Eliminar</button>
+      </div>
     </div>
   `).join('');
 }
 
         
-        return `
-            <div class="pedido-item ${pedido.completado ? 'completado' : ''}">
-                <div class="pedido-header">
-                    <span class="pedido-hora">🕐 ${pedido.fecha}</span>
-                    <div class="pedido-botones">
-                        <button class="editar" onclick="abrirModalEditar('${pedido.key}')">✏️ Editar</button>
-                        <button class="completar" onclick="marcarCompleto('${pedido.key}', ${pedido.timestamp}, ${pedido.completado})">
-                            ${pedido.completado ? '↩️ Deshacer' : '✓ Hecho'}
-                        </button>
-                        <button class="eliminar" onclick="eliminarPedido('${pedido.key}')">🗑️ Eliminar</button>
-                    </div>
-                </div>
-                <div class="pedido-items">
-                    ${pedido.items.map(item => `• ${item.nombre} x${item.cantidad}`).join('<br>')}
-                </div>
-                <div class="pedido-total">Total: ${formatearPrecio(pedido.total)}</div>
-                ${tiempoHTML}
-            </div>
-        `;
-    }).join('');
-}
 
        function abrirModalEditar(key) {
     pedidosRef.child(key).once('value', (snapshot) => {
