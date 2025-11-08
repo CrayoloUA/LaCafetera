@@ -1253,7 +1253,8 @@ function mostrarPedidos(pedidos) {
     lista.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">📋 Sin pedidos</div>';
     return;
   }
-
+const pedidosArray = Object.values(pedidos).reverse();
+    
   lista.innerHTML = pedidos.map(pedido => {
     let estadoTexto = '';
     let estadoColor = '';
