@@ -643,6 +643,26 @@
             </div>
         </div>
     </div>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <script>
+      // Configuración Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyDhpYmEphM9HjnBOzfLZRl1IBxrY34MKgM",
+        authDomain: "la-cafetera.firebaseapp.com",
+        databaseURL: "https://la-cafetera-default-rtdb.firebaseio.com",
+        projectId: "la-cafetera",
+        storageBucket: "la-cafetera.firebasestorage.app",
+        messagingSenderId: "1085725002264",
+        appId: "1:1085725002264:web:300247d311f61070ee516d",
+        measurementId: "G-XGGXLBCKRF"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const database = firebase.database();
+      const pedidosRef = database.ref('pedidos');
+    </script>
 
     <script>
         const ARTICULOS = {
@@ -809,99 +829,121 @@
             document.querySelectorAll('.articulo').forEach(btn => btn.classList.remove('seleccionado'));
         }
 
-        function enviarPedido() {
-            if (pedidoActual.length === 0) return;
+     function enviarPedido() {
+    if (pedidoActual.length === 0) return;
 
-            const pedido = {
-                id: Date.now(),
-                fecha: new Date().toLocaleTimeString(),
-                items: [...pedidoActual],
-                total: pedidoActual.reduce((sum, item) => sum + item.subtotal, 0),
-                completado: false
-            };
+    const pedido = {
+        fecha: new Date().toLocaleTimeString(),
+        timestamp: Date.now(),
+        items: [...pedidoActual],
+        total: pedidoActual.reduce((sum, item) => sum + item.subtotal, 0),
+        completado: false,
+        tiempoEntrega: null
+    };
 
-            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-            pedidos.push(pedido);
-            localStorage.setItem('pedidos', JSON.stringify(pedidos));
+    pedidosRef.push(pedido);  // ← Firebase
 
-            pedidoActual = [];
-            mostrarResumen();
-            cargarPedidos();
+    pedidoActual = [];
+    mostrarResumen();
+}
+
+
+function cargarPedidos() {
+    pedidosRef.on('value', (snapshot) => {
+        const pedidos = [];
+        snapshot.forEach((childSnapshot) => {
+            pedidos.push({
+                key: childSnapshot.key,
+                ...childSnapshot.val()
+            });
+        });
+        mostrarPedidos(pedidos);
+    });
+}
+function mostrarPedidos(pedidos) {
+    const lista = document.getElementById('listaPedidos');
+    
+    if (pedidos.length === 0) {
+        lista.innerHTML = '<div class="sin-pedidos">Sin pedidos aún</div>';
+        return;
+    }
+
+    lista.innerHTML = pedidos.reverse().map((pedido) => {
+        let tiempoHTML = '';
+        if (pedido.completado && pedido.tiempoEntrega) {
+            const mins = Math.floor(pedido.tiempoEntrega / 60);
+            const secs = pedido.tiempoEntrega % 60;
+            const tiempo = mins > 0 ? `${mins} min ${secs} seg` : `${secs} seg`;
+            tiempoHTML = `<div style="background: #4CAF50; color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; display: inline-block; margin-top: 8px;">⏱️ Tiempo: ${tiempo}</div>`;
         }
-
-        function cargarPedidos() {
-            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-            const lista = document.getElementById('listaPedidos');
-            
-            if (pedidos.length === 0) {
-                lista.innerHTML = '<div class="sin-pedidos">Sin pedidos aún</div>';
-                return;
-            }
-
-            lista.innerHTML = pedidos.reverse().map((pedido) => `
-                <div class="pedido-item ${pedido.completado ? 'completado' : ''}">
-                    <div class="pedido-header">
-                        <span class="pedido-hora">🕐 ${pedido.fecha}</span>
-                        <div class="pedido-botones">
-                            <button class="editar" onclick="abrirModalEditar(${pedido.id})">✏️ Editar</button>
-                            <button class="completar" onclick="marcarCompleto(${pedido.id})">
-                                ${pedido.completado ? '↩️ Deshacer' : '✓ Hecho'}
-                            </button>
-                            <button class="eliminar" onclick="eliminarPedido(${pedido.id})">🗑️ Eliminar</button>
-                        </div>
-                    </div>
-                    <div class="pedido-items">
-                        ${pedido.items.map(item => `• ${item.nombre} x${item.cantidad}`).join('<br>')}
-                    </div>
-                    <div class="pedido-total">Total: ${formatearPrecio(pedido.total)}</div>
-                </div>
-            `).join('');
-        }
-
-        function abrirModalEditar(id) {
-            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-            const pedido = pedidos.find(p => p.id === id);
-            
-            if (!pedido) return;
-
-            pedidoEditandoId = id;
-            const modal = document.getElementById('modalEditar');
-            const modalCuerpo = document.getElementById('modalCuerpo');
-
-            let html = '<div class="articulos-actuales">';
-            html += '<h4>🛒 Artículos actuales:</h4>';
-            html += pedido.items.map((item, idx) => `
-                <div class="item-actual">
-                    <span><strong>${item.nombre}</strong> x${item.cantidad} - ${formatearPrecio(item.subtotal)}</span>
-                    <button class="quitar" onclick="eliminarDelPedidoEditado(${idx})">Quitar</button>
-                </div>
-            `).join('');
-            html += '</div>';
-
-            html += '<h4 style="color: #8B4513; margin: 15px 0 10px; font-weight: 600;">➕ Agregar artículo:</h4>';
-            html += '<div class="articulos-editar">';
-            
-            for (let categoria in ARTICULOS) {
-                for (let art of ARTICULOS[categoria]) {
-                    html += `
-                        <button class="articulo-editar" id="art-modal-${art.id}" onclick="seleccionarArticuloEditar(${art.id}, '${art.nombre}', ${art.precio})">
-                            ${art.nombre}<br><small>${formatearPrecio(art.precio)}</small>
+        
+        return `
+            <div class="pedido-item ${pedido.completado ? 'completado' : ''}">
+                <div class="pedido-header">
+                    <span class="pedido-hora">🕐 ${pedido.fecha}</span>
+                    <div class="pedido-botones">
+                        <button class="editar" onclick="abrirModalEditar('${pedido.key}')">✏️ Editar</button>
+                        <button class="completar" onclick="marcarCompleto('${pedido.key}', ${pedido.timestamp}, ${pedido.completado})">
+                            ${pedido.completado ? '↩️ Deshacer' : '✓ Hecho'}
                         </button>
-                    `;
-                }
+                        <button class="eliminar" onclick="eliminarPedido('${pedido.key}')">🗑️ Eliminar</button>
+                    </div>
+                </div>
+                <div class="pedido-items">
+                    ${pedido.items.map(item => `• ${item.nombre} x${item.cantidad}`).join('<br>')}
+                </div>
+                <div class="pedido-total">Total: ${formatearPrecio(pedido.total)}</div>
+                ${tiempoHTML}
+            </div>
+        `;
+    }).join('');
+}
+
+       function abrirModalEditar(key) {
+    pedidosRef.child(key).once('value', (snapshot) => {
+        const pedido = snapshot.val();
+        if (!pedido) return;
+
+        pedidoEditandoId = key;
+        const modal = document.getElementById('modalEditar');
+        const modalCuerpo = document.getElementById('modalCuerpo');
+
+        let html = '<div class="articulos-actuales">';
+        html += '<h4>🛒 Artículos actuales:</h4>';
+        html += pedido.items.map((item, idx) => `
+            <div class="item-actual">
+                <span><strong>${item.nombre}</strong> x${item.cantidad} - ${formatearPrecio(item.subtotal)}</span>
+                <button class="quitar" onclick="eliminarDelPedidoEditado(${idx})">Quitar</button>
+            </div>
+        `).join('');
+        html += '</div>';
+
+        html += '<h4 style="color: #8B4513; margin: 15px 0 10px; font-weight: 600;">➕ Agregar artículo:</h4>';
+        html += '<div class="articulos-editar">';
+        
+        for (let categoria in ARTICULOS) {
+            for (let art of ARTICULOS[categoria]) {
+                html += `
+                    <button class="articulo-editar" id="art-modal-${art.id}" onclick="seleccionarArticuloEditar(${art.id}, '${art.nombre}', ${art.precio})">
+                        ${art.nombre}<br><small>${formatearPrecio(art.precio)}</small>
+                    </button>
+                `;
             }
-            html += '</div>';
-
-            html += `<div class="cantidad-modal">
-                <label>Cantidad:</label>
-                <button onclick="restarCantidadEditando()">−</button>
-                <input type="number" id="cantidadEditando" value="1" min="1">
-                <button onclick="sumarCantidadEditando()">+</button>
-            </div>`;
-
-            modalCuerpo.innerHTML = html;
-            modal.style.display = 'block';
         }
+        html += '</div>';
+
+        html += `<div class="cantidad-modal">
+            <label>Cantidad:</label>
+            <button onclick="restarCantidadEditando()">−</button>
+            <input type="number" id="cantidadEditando" value="1" min="1">
+            <button onclick="sumarCantidadEditando()">+</button>
+        </div>`;
+
+        modalCuerpo.innerHTML = html;
+        modal.style.display = 'block';
+    });
+}
+
 
         function seleccionarArticuloEditar(id, nombre, precio) {
             document.querySelectorAll('.articulo-editar').forEach(btn => btn.classList.remove('seleccionado-modal'));
@@ -920,82 +962,85 @@
             if (qty > 1) document.getElementById('cantidadEditando').value = qty - 1;
         }
 
-        function agregarAlPedidoEditado() {
-            if (!articuloEditandoId) {
-                alert('Selecciona un artículo');
-                return;
-            }
+function agregarAlPedidoEditado() {
+    if (!articuloEditandoId) {
+        alert('Selecciona un artículo');
+        return;
+    }
 
-            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-            const pedido = pedidos.find(p => p.id === pedidoEditandoId);
+    pedidosRef.child(pedidoEditandoId).once('value', (snapshot) => {
+        const pedido = snapshot.val();
 
-            let articuloNombre = '', articuloPrecio = 0;
-            for (let categoria in ARTICULOS) {
-                const art = ARTICULOS[categoria].find(a => a.id === articuloEditandoId);
-                if (art) {
-                    articuloNombre = art.nombre;
-                    articuloPrecio = art.precio;
-                    break;
-                }
-            }
-
-            const cantidad = parseInt(document.getElementById('cantidadEditando').value);
-            pedido.items.push({
-                id: articuloEditandoId,
-                nombre: articuloNombre,
-                precio: articuloPrecio,
-                cantidad,
-                subtotal: articuloPrecio * cantidad
-            });
-
-            pedido.total = pedido.items.reduce((sum, item) => sum + item.subtotal, 0);
-            localStorage.setItem('pedidos', JSON.stringify(pedidos));
-
-            articuloEditandoId = null;
-            abrirModalEditar(pedidoEditandoId);
-            cargarPedidos();
-        }
-
-        function eliminarDelPedidoEditado(idx) {
-            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-            const pedido = pedidos.find(p => p.id === pedidoEditandoId);
-            pedido.items.splice(idx, 1);
-            pedido.total = pedido.items.reduce((sum, item) => sum + item.subtotal, 0);
-            localStorage.setItem('pedidos', JSON.stringify(pedidos));
-            abrirModalEditar(pedidoEditandoId);
-            cargarPedidos();
-        }
-
-        function cerrarModal() {
-            document.getElementById('modalEditar').style.display = 'none';
-            articuloEditandoId = null;
-        }
-
-        function marcarCompleto(id) {
-            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-            const pedido = pedidos.find(p => p.id === id);
-            if (pedido) pedido.completado = !pedido.completado;
-            localStorage.setItem('pedidos', JSON.stringify(pedidos));
-            cargarPedidos();
-        }
-
-        function eliminarPedido(id) {
-            if (confirm('¿Eliminar este pedido?')) {
-                let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-                pedidos = pedidos.filter(p => p.id !== id);
-                localStorage.setItem('pedidos', JSON.stringify(pedidos));
-                cargarPedidos();
+        let articuloNombre = '', articuloPrecio = 0;
+        for (let categoria in ARTICULOS) {
+            const art = ARTICULOS[categoria].find(a => a.id === articuloEditandoId);
+            if (art) {
+                articuloNombre = art.nombre;
+                articuloPrecio = art.precio;
+                break;
             }
         }
 
-        window.onclick = function(event) {
-            const modal = document.getElementById('modalEditar');
-            if (event.target === modal) {
-                cerrarModal();
-            }
-        }
+        const cantidad = parseInt(document.getElementById('cantidadEditando').value);
+        pedido.items.push({
+            id: articuloEditandoId,
+            nombre: articuloNombre,
+            precio: articuloPrecio,
+            cantidad,
+            subtotal: articuloPrecio * cantidad
+        });
 
-        inicializar();
+        pedido.total = pedido.items.reduce((sum, item) => sum + item.subtotal, 0);
+        
+        pedidosRef.child(pedidoEditandoId).update(pedido);
+
+        articuloEditandoId = null;
+        cerrarModal();
+    });
+}
+
+function eliminarDelPedidoEditado(idx) {
+    pedidosRef.child(pedidoEditandoId).once('value', (snapshot) => {
+        const pedido = snapshot.val();
+        pedido.items.splice(idx, 1);
+        pedido.total = pedido.items.reduce((sum, item) => sum + item.subtotal, 0);
+        
+        pedidosRef.child(pedidoEditandoId).update(pedido);
+        abrirModalEditar(pedidoEditandoId);
+    });
+}
+
+
+function eliminarPedido(key) {
+    if (confirm('¿Eliminar este pedido?')) {
+        pedidosRef.child(key).remove();
+    }
+}
+        function marcarCompleto(key, timestamp, completado) {
+    let tiempoEntrega = null;
+    if (!completado) {
+        tiempoEntrega = Math.floor((Date.now() - timestamp) / 1000);
+    }
+    
+    pedidosRef.child(key).update({
+        completado: !completado,
+        tiempoEntrega: tiempoEntrega
+    });
+}
+
+function cerrarModal() {
+    document.getElementById('modalEditar').style.display = 'none';
+    articuloEditandoId = null;
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('modalEditar');
+    if (event.target === modal) {
+        cerrarModal();
+    }
+}
+
+
     </script>
 </body>
 </html>
