@@ -767,7 +767,7 @@
         <div class="lista-pedidos">
            <div class="lista-pedidos">
     <h2>📋 Historial de Pedidos</h2>
-    
+        <div id="listaPedidos"></div>
     <div class="filtros-fecha">
         <button class="filtro-btn activo" onclick="filtrarPorFecha('hoy')">Hoy</button>
         <button class="filtro-btn" onclick="filtrarPorFecha('ayer')">Ayer</button>
@@ -1170,17 +1170,19 @@ function cargarPedidos() {
 }
 
 function mostrarPedidos(pedidos) {
-    const lista = document.getElementById('listaPedidos'); // Usa el id de tu contenedor real
-    if (pedidos.length === 0) {
-        lista.innerHTML = '<div style="margin:20px 0;color:#a00;font-weight:bold;">No hay pedidos registrados.</div>';
+    const lista = document.getElementById('listaPedidos');
+
+    if (!pedidos || pedidos.length === 0) {
+        lista.innerHTML = '<p>No hay pedidos para mostrar.</p>';
         return;
     }
+
     lista.innerHTML = pedidos.map(pedido => `
-        <div class="pedido-item" style="margin-bottom:18px;padding:12px 14px;background:#f7f7f7;border-radius:9px;">
-            <div><b>Mesa:</b> ${pedido.mesa}</div>
-            <div><b>Estado:</b> ${pedido.estado || '-'}</div>
-            <div><b>Items:</b> ${pedido.items ? pedido.items.map(it=>it.nombre + ' x'+it.cantidad).join(', ') : '-'}</div>
-            <div><b>Fecha:</b> ${pedido.fecha || '-'}</div>
+        <div class="pedido-item">
+            <div><strong>Mesa:</strong> ${pedido.mesa}</div>
+            <div><strong>Estado:</strong> ${pedido.estado}</div>
+            <div><strong>Productos:</strong> ${pedido.items.map(i => i.nombre + ' x ' + i.cantidad).join(', ')}</div>
+            <div><strong>Fecha:</strong> ${pedido.fecha}</div>
         </div>
     `).join('');
 }
