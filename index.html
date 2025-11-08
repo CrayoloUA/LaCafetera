@@ -631,6 +631,73 @@
 .pedido-activo {
     border-left: 5px solid #ff4444;
 }
+.mesa-boton {
+    padding: 15px;
+    border: 3px solid #D2B48C;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    text-align: center;
+    font-weight: bold;
+    transition: all 0.3s;
+    font-size: 16px;
+}
+
+.mesa-boton.libre {
+    border-color: #4CAF50;
+    background: #E8F5E9;
+}
+
+.mesa-boton.libre:hover {
+    background: #4CAF50;
+    color: white;
+    transform: scale(1.05);
+}
+
+.mesa-boton.ocupada {
+    border-color: #ff4444;
+    background: #FFEBEE;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.mesa-boton.seleccionada {
+    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+    color: white;
+    border-color: #8B4513;
+}
+.mesa-boton {
+    padding: 15px;
+    border: 3px solid #D2B48C;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    text-align: center;
+    font-weight: bold;
+    transition: all 0.3s;
+    font-size: 16px;
+}
+
+.mesa-boton.libre {
+    border-color: #4CAF50;
+    background: #E8F5E9;
+}
+.mesa-boton.libre:hover {
+    background: #4CAF50;
+    color: white;
+    transform: scale(1.05);
+}
+.mesa-boton.ocupada {
+    border-color: #ff4444;
+    background: #FFEBEE;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+.mesa-boton.seleccionada {
+    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+    color: white;
+    border-color: #8B4513;
+}
 
     </style>
 </head>
@@ -656,10 +723,16 @@
             <p class="subtitulo">Sistema de Comandas</p>
         </div>
         <div class="seccion">
-    <h2>🪑 Número de Mesa</h2>
-    <input type="text" id="numeroMesa" placeholder="Ej: Mesa 1, Terraza, A5..." style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #D2B48C; border-radius: 8px; font-size: 16px;">
+<div class="seccion">
+    <h2>🪑 Selecciona Mesa</h2>
     <div id="mesaError" style="color: red; margin-bottom: 10px; display: none; font-weight: bold;"></div>
+    <div id="contenedorMesas" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 15px;"></div>
+    <input type="hidden" id="mesaSeleccionada" value="">
 </div>
+
+    <input type="hidden" id="mesaSeleccionada" value="">
+</div>
+
 
         <div class="seccion">
             <h2>📂 Selecciona Categoría</h2>
@@ -842,6 +915,54 @@ function verificarAcceso() {
         cargarPedidos();
     }
 }
+        let filtroActual = 'hoy'; // Si no la tienes, agrégala arriba
+
+const NUMERO_DE_MESAS = 20; // Puedes poner el número que prefieras
+let mesasOcupadas = [];
+let mesaSeleccionada = null;
+
+function cargarEstadoMesas() {
+    pedidosRef.once('value', (snapshot) => {
+        const pedidos = snapshot.val();
+        mesasOcupadas = [];
+        if (pedidos) {
+            Object.values(pedidos).forEach(pedido => {
+                if (pedido.estado === 'pendiente' && pedido.mesa) {
+                    mesasOcupadas.push(parseInt(pedido.mesa));
+                }
+            });
+        }
+        renderizarMesas();
+    });
+}
+
+function renderizarMesas() {
+    const contenedor = document.getElementById('contenedorMesas');
+    contenedor.innerHTML = '';
+    for (let i = 1; i <= NUMERO_DE_MESAS; i++) {
+        const ocupada = mesasOcupadas.includes(i);
+        const boton = document.createElement('div');
+        boton.className = 'mesa-boton ' + (ocupada ? 'ocupada' : 'libre');
+        if (mesaSeleccionada === i) boton.classList.add('seleccionada');
+        boton.innerHTML = `
+            <div style="font-size: 20px; margin-bottom: 5px;">${ocupada ? '🔴' : '🟢'}</div>
+            <div>Mesa ${i}</div>
+            <div style="font-size: 11px; margin-top: 3px;">${ocupada ? 'Ocupada' : 'Libre'}</div>
+        `;
+        if (!ocupada) {
+            boton.onclick = () => seleccionarMesa(i);
+        }
+        contenedor.appendChild(boton);
+    }
+}
+
+function seleccionarMesa(numeroMesa) {
+    mesaSeleccionada = numeroMesa;
+    document.getElementById('mesaSeleccionada').value = numeroMesa;
+    document.getElementById('mesaError').style.display = 'none';
+    renderizarMesas();
+}
+
 
         function renderizarCategorias() {
             const contenedor = document.getElementById('categorias');
@@ -946,16 +1067,14 @@ function actualizarResumen() {
     mostrarResumen();
 }
 
-   function enviarPedido() {
-    const numeroMesa = document.getElementById('numeroMesa').value.trim();
+function enviarPedido() {
+    const numeroMesa = document.getElementById('mesaSeleccionada').value;
     const mesaError = document.getElementById('mesaError');
-    
     if (!numeroMesa) {
-        mesaError.textContent = '⚠️ Por favor ingresa el número de mesa';
+        mesaError.textContent = 'Debes seleccionar una mesa';
         mesaError.style.display = 'block';
         return;
     }
-    
     if (pedidoActual.length === 0) {
         alert('❌ No hay artículos en el pedido');
         return;
@@ -1020,12 +1139,15 @@ function enviarPedidoConfirmado(numeroMesa) {
     };
 
     pedidosRef.push(pedidoFinal)
-        .then(() => {
-            alert(`✅ Pedido enviado con éxito!\n🪑 Mesa: ${numeroMesa}`);
-            pedidoActual = [];
-            document.getElementById('numeroMesa').value = '';
-            mostrarResumen();
-        })
+      .then(() => {
+    alert(`✅ Pedido enviado con éxito!\n🪑 Mesa: ${numeroMesa}`);
+    pedidoActual = [];
+    mesaSeleccionada = null;
+    document.getElementById('mesaSeleccionada').value = '';
+    mostrarResumen();
+    cargarEstadoMesas();
+})
+
         .catch((error) => {
             alert('❌ Error al enviar: ' + error.message);
         });
