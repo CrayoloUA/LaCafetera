@@ -923,6 +923,9 @@ function verificarAcceso() {
                 { id: 20, nombre: 'Malleada', precio: 16800 },
                 { id: 21, nombre: 'Jugo en Agua', precio: 9800 },
                 { id: 22, nombre: 'Jugo en Leche', precio: 11800 },
+                { id: 39, nombre: 'Agua', precio: 5000 },
+                { id: 40, nombre: 'Agua con Gas', precio: 5000 },
+                { id: 41, nombre: 'Canada Dry', precio: 5000 },
             ],
             'Panadería y Pastelería': [
                 { id: 23, nombre: 'Waflebonos x 4', precio: 8800 },
@@ -1485,11 +1488,35 @@ function eliminarDelPedidoEditado(idx) {
 }
 
 
+// Contraseña para eliminar pedidos (cámbiala a lo que quieras)
+const CONTRASENA_ADMIN = "admin123";
+
+// Función para eliminar pedido con contraseña
 function eliminarPedido(key) {
-    if (confirm('¿Eliminar este pedido?')) {
-        pedidosRef.child(key).remove();
+    const password = prompt('🔐 Ingresa la contraseña de administrador para eliminar este pedido:');
+    
+    if (password === null) {
+        // Usuario canceló
+        return;
+    }
+    
+    if (password !== CONTRASENA_ADMIN) {
+        alert('❌ Contraseña incorrecta. No tienes permiso para eliminar pedidos.');
+        return;
+    }
+    
+    // Contraseña correcta - confirmar eliminación
+    if (confirm('⚠️ ¿Estás seguro de que deseas ELIMINAR este pedido?\n\nEsta acción NO se puede deshacer.')) {
+        pedidosRef.child(key).remove().then(() => {
+            alert('✅ Pedido eliminado correctamente');
+            cargarPedidos();
+            cargarEstadoMesas();
+        }).catch(error => {
+            alert('❌ Error al eliminar: ' + error.message);
+        });
     }
 }
+
 function cambiarEstadoPedido(key, estadoActual, timestamp) {
   console.log('Click - Key:', key, 'Estado:', estadoActual);
   
