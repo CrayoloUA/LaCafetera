@@ -923,9 +923,9 @@ function verificarAcceso() {
                 { id: 20, nombre: 'Malleada', precio: 16800 },
                 { id: 21, nombre: 'Jugo en Agua', precio: 9800 },
                 { id: 22, nombre: 'Jugo en Leche', precio: 11800 },
-                { id: 39, nombre: 'Agua', precio: 5000 },
-                { id: 40, nombre: 'Agua con Gas', precio: 5000 },
-                { id: 41, nombre: 'Canada Dry', precio: 5000 },
+                { id: 39, nombre: 'Agua', precio: 5500 },
+                { id: 40, nombre: 'Agua con Gas', precio: 5500 },
+                { id: 41, nombre: 'Canada Dry', precio: 5500 },
             ],
             'Panadería y Pastelería': [
                 { id: 23, nombre: 'Waflebonos x 4', precio: 8800 },
@@ -1001,16 +1001,22 @@ function cargarEstadoMesas() {
 function renderizarMesas() {
     const contenedor = document.getElementById('contenedorMesas');
     contenedor.innerHTML = '';
+    
     for (let i = 1; i <= NUMERO_DE_MESAS; i++) {
         const ocupada = mesasOcupadas.includes(i);
         const boton = document.createElement('div');
         boton.className = 'mesa-boton ' + (ocupada ? 'ocupada' : 'libre');
         if (mesaSeleccionada === i) boton.classList.add('seleccionada');
+        
+        // Si es mesa 20, mostrar "⭐ VIP" en lugar de "Mesa 20"
+        const nombreMesa = i === 20 ? '⭐ VIP' : `Mesa ${i}`;
+        
         boton.innerHTML = `
             <div style="font-size: 20px; margin-bottom: 5px;">${ocupada ? '🔴' : '🟢'}</div>
-            <div>Mesa ${i}</div>
+            <div>${nombreMesa}</div>
             <div style="font-size: 11px; margin-top: 3px;">${ocupada ? 'Ocupada' : 'Libre'}</div>
         `;
+        
         if (!ocupada) {
             boton.onclick = () => seleccionarMesa(i);
         }
@@ -1256,9 +1262,10 @@ function mostrarPedidos(pedidos) {
     lista.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">📋 Sin pedidos</div>';
     return;
   }
-const pedidosArray = Object.values(pedidos).reverse();
+  
+  const pedidosArray = Object.values(pedidos).reverse();
     
-  lista.innerHTML = pedidos.map(pedido => {
+  lista.innerHTML = pedidosArray.map(pedido => {
     let estadoTexto = '';
     let estadoColor = '';
     let botonTexto = '';
@@ -1280,7 +1287,7 @@ const pedidosArray = Object.values(pedidos).reverse();
       estadoTexto = '✔️ PAGADO';
       estadoColor = '#28a745';
       botonTexto = '✔️ PAGADO';
-      mostrarBoton = false; // NO mostrar botón si ya está pagado
+      mostrarBoton = false;
     }
 
     return `
@@ -1294,7 +1301,7 @@ const pedidosArray = Object.values(pedidos).reverse();
       ">
         <!-- Encabezado con Mesa y Hora -->
         <div style="display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-          <div style="font-weight: bold; font-size: 16px;">🪑 Mesa: ${pedido.mesa}</div>
+          <div style="font-weight: bold; font-size: 16px;">🪑 ${parseInt(pedido.mesa) === 20 ? '⭐ VIP' : 'Mesa: ' + pedido.mesa}</div>
           <div style="color: #999; font-size: 13px;">🕐 ${pedido.fecha}</div>
         </div>
 
@@ -1374,7 +1381,6 @@ const pedidosArray = Object.values(pedidos).reverse();
   }).join('');
 }
 
-        
 
        function abrirModalEditar(key) {
     pedidosRef.child(key).once('value', (snapshot) => {
