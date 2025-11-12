@@ -752,6 +752,26 @@
 .pedido-botones button:nth-child(3):hover {
   background-color: #c9302c;
 }
+.filtro-btn {
+    padding: 10px 15px;
+    background: white;
+    border: 2px solid #D2B48C;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    color: #8B4513;
+}
+
+.filtro-btn:hover {
+    background: #f5f0e8;
+}
+
+.filtro-btn.activo {
+    background: #8B4513;
+    color: white;
+}
+
 
     </style>
 </head>
@@ -821,6 +841,22 @@
         <div class="lista-pedidos">
            <div class="lista-pedidos">
     <h2>📋 Historial de Pedidos</h2>
+    <!-- Filtros de Fecha -->
+<div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 15px;">
+    <button class="filtro-btn activo" onclick="filtrarPorFecha('hoy')">Hoy</button>
+    <button class="filtro-btn" onclick="filtrarPorFecha('ayer')">Ayer</button>
+    <button class="filtro-btn" onclick="filtrarPorFecha('semana')">Esta Semana</button>
+    <button class="filtro-btn" onclick="filtrarPorFecha('todo')">Todo</button>
+    
+    <!-- Selector de fecha personalizado -->
+    <div style="display: flex; gap: 5px; align-items: center;">
+        <label style="font-weight: bold; color: #8B4513;">📅 Fecha:</label>
+        <input type="date" id="fechaPersonalizada" 
+               style="padding: 8px; border: 2px solid #D2B48C; border-radius: 6px; font-size: 14px;"
+               onchange="filtrarPorFechaPersonalizada()">
+    </div>
+</div>
+
         <div id="listaPedidos"></div>
     <div class="filtros-fecha">
         <button class="filtro-btn activo" onclick="filtrarPorFecha('hoy')">Hoy</button>
@@ -897,63 +933,89 @@ function verificarAcceso() {
 
 
 
-        const ARTICULOS = {
-            'Bebidas Calientes': [
-                { id: 1, nombre: 'Espresso', precio: 5500 },
-                { id: 2, nombre: 'Espresso Doble', precio: 6000 },
-                { id: 3, nombre: 'Americano', precio: 6800 },
-                { id: 4, nombre: 'Café con Leche', precio: 7800 },
-                { id: 5, nombre: 'Mocaccino', precio: 10800 },
-                { id: 6, nombre: 'Chocolate', precio: 8800 },
-                { id: 7, nombre: 'Milo Caliente', precio: 10800 },
-                { id: 8, nombre: 'Aromática', precio: 5800 },
-                { id: 9, nombre: 'Cappuccino Tradicional', precio: 9800 },
-                { id: 10, nombre: 'Cappuccino Macadamia', precio: 12800 },
-                { id: 11, nombre: 'Cappuccino Vainilla', precio: 12800 },
-                { id: 12, nombre: 'Cappuccino Caramelo', precio: 12800 },
-                { id: 13, nombre: 'Cappuccino Amaretto', precio: 15800 },
-                { id: 14, nombre: 'Café Bombón', precio: 11800 },
-                { id: 15, nombre: 'Café Vienés', precio: 10800 },
-                { id: 16, nombre: 'Chai Latte', precio: 10800 },
-            ],
-            'Bebidas Frías': [
-                { id: 17, nombre: 'Granizado de Café', precio: 13800 },
-                { id: 18, nombre: 'Milo Frío', precio: 10800 },
-                { id: 19, nombre: 'Frappeado', precio: 15800 },
-                { id: 20, nombre: 'Malleada', precio: 16800 },
-                { id: 21, nombre: 'Jugo en Agua', precio: 9800 },
-                { id: 22, nombre: 'Jugo en Leche', precio: 11800 },
-                { id: 39, nombre: 'Agua', precio: 5500 },
-                { id: 40, nombre: 'Agua con Gas', precio: 5500 },
-                { id: 41, nombre: 'Canada Dry', precio: 5500 },
-            ],
-            'Panadería y Pastelería': [
-                { id: 23, nombre: 'Waflebonos x 4', precio: 8800 },
-                { id: 24, nombre: 'Waflebonos x 8', precio: 14800 },
-                { id: 25, nombre: 'Pandelaitos x 6', precio: 11800 },
-                { id: 26, nombre: 'Brownie', precio: 6500 },
-                { id: 27, nombre: 'Galletas', precio: 4500 },
-                { id: 28, nombre: 'Torta de Zanahoria', precio: 8500 },
-                { id: 29, nombre: 'Torta de Chocolate', precio: 8500 },
-                { id: 30, nombre: 'Rollo de Canela', precio: 9800 },
-                { id: 31, nombre: 'Muffin', precio: 5500 },
-                { id: 32, nombre: 'Alfajores', precio: 4500 },
-            ],
-            'Focaccias': [
-                { id: 33, nombre: 'Focaccia con Jamón Cerdo', precio: 17800 },
-                { id: 34, nombre: 'Focaccia con Jamón Pavo', precio: 17800 },
-                { id: 35, nombre: 'Focaccia Mixta', precio: 17800 },
-            ],
-            'Adicionales': [
-                { id: 36, nombre: 'Amaretto', precio: 6000 },
-                { id: 37, nombre: 'Crema de Whisky', precio: 6000 },
-                { id: 38, nombre: 'Crema Chantilly', precio: 5000 },
-            ]
-        };
+       const ARTICULOS = {
+            "Propina": [
+    { id: 999, nombre: "💰 Propina", precio: 0 } // precio 0 porque se preguntará al agregar
+  ],
+  "Bebidas Calientes": [
+    { id: 1, nombre: "Espresso", precio: 5500 },
+    { id: 2, nombre: "Espresso Doble", precio: 6000 },
+    { id: 42, nombre: "Espresso Macchiato", precio: 7800 },
+    { id: 3, nombre: "Americano", precio: 6800 },
+    { id: 4, nombre: "Café con Leche", precio: 7800 },
+    { id: 5, nombre: "Mocaccino", precio: 10800 },
+    { id: 6, nombre: "Chocolate", precio: 8800 },
+    { id: 7, nombre: "Milo Caliente", precio: 10800 },
+    { id: 8, nombre: "Aromática", precio: 5800 },
+    { id: 9, nombre: "Cappuccino Tradicional", precio: 9800 },
+    { id: 10, nombre: "Cappuccino Macadamia", precio: 12800 },
+    { id: 11, nombre: "Cappuccino Vainilla", precio: 12800 },
+    { id: 12, nombre: "Cappuccino Caramelo", precio: 12800 },
+    { id: 13, nombre: "Cappuccino Amaretto", precio: 15800 },
+    { id: 14, nombre: "Café Bombón", precio: 11800 },
+    { id: 15, nombre: "Café Viens", precio: 10800 },
+    { id: 16, nombre: "Chai Latte", precio: 10800 }
+  ],
+  "Bebidas Frías": [
+    { id: 17, nombre: "Granizado de Café", precio: 13800 },
+    { id: 18, nombre: "Milo Frío", precio: 12800 },
+    { id: 19, nombre: "Frappeado", precio: 15800 },
+    { id: 20, nombre: "Malteada", precio: 16800 },
+    { id: 21, nombre: "Jugo en Agua", precio: 9800 },
+    { id: 22, nombre: "Jugo en Leche", precio: 11800 },
+    { id: 39, nombre: "Agua", precio: 5500 },
+    { id: 40, nombre: "Agua con Gas", precio: 5500 },
+    { id: 41, nombre: "Canada Dry", precio: 5500 },
+    { id: 59, nombre: "Chai Frío", precio: 12800 },
+    { id: 43, nombre: "Coca Cola", precio: 5500 },
+    { id: 44, nombre: "Coca Zero", precio: 5500 },
+    { id: 45, nombre: "Guarapo", precio: 14000 }
+  ],
+  "Panadería y Pastelería": [
+    { id: 23, nombre: "Waflebonos x 4", precio: 8800 },
+    { id: 24, nombre: "Waflebonos x 8", precio: 14800 },
+    { id: 25, nombre: "Pandebonitos x 6", precio: 11800 },
+    { id: 26, nombre: "Brownie", precio: 6500 },
+    { id: 54, nombre: "Brownie con Helado", precio: 10500 },
+    { id: 27, nombre: "Galletas", precio: 4500 },
+    { id: 28, nombre: "Torta de Zanahoria", precio: 8500 },
+    { id: 29, nombre: "Torta de Chocolate", precio: 8500 },
+    { id: 46, nombre: "Torta de Banano", precio: 8500 },
+    { id: 30, nombre: "Rollo de Canela", precio: 9800 },
+    { id: 31, nombre: "Muffin", precio: 5500 },
+    { id: 32, nombre: "Alfajores", precio: 4500 },
+    { id: 47, nombre: "Affogato", precio: 10800 },
+    { id: 48, nombre: "Dulces Detalles", precio: 4000 }
+  ],
+  "Focaccias": [
+    { id: 33, nombre: "Focaccia con Jamón Cerdo", precio: 17800 },
+    { id: 34, nombre: "Focaccia con Jamón Pavo", precio: 17800 },
+    { id: 35, nombre: "Focaccia Mixta", precio: 17800 }
+  ],
+  "Cafés en Grano": [
+    { id: 49, nombre: "Suave Lavado", precio: 45000 },
+    { id: 50, nombre: "Natural", precio: 50000 },
+    { id: 51, nombre: "Honey", precio: 55000 }
+  ],
+  "Vinos": [
+    { id: 52, nombre: "Botella de Vino", precio: 48000 },
+    { id: 53, nombre: "Copa de Vino", precio: 15800 }
+  ],
+  "Adiciones": [
+    { id: 36, nombre: "Amaretto", precio: 6000 },
+    { id: 37, nombre: "Crema de Whisky", precio: 6000 },
+    { id: 38, nombre: "Crema Chantilly", precio: 5000 },
+    { id: 55, nombre: "Leche de Almendras", precio: 3000 },
+    { id: 56, nombre: "Bola de Helado", precio: 4000 },
+    { id: 57, nombre: "Vaso de Leche", precio: 4000 }
+  ]
+};
+
 
         let categoriaActual = 'Bebidas Calientes';
         let articuloSeleccionado = null;
         let pedidoActual = [];
+        let filtroActual = 'hoy';
         let pedidoEditandoId = null;
         let articuloEditandoId = null;
         let cantidadEditando = 1;
@@ -974,7 +1036,7 @@ function verificarAcceso() {
         });
     }
 }
-let filtroActual = 'hoy'; // Si no la tienes, agrégala aquí
+// let filtroActual = 'hoy';  
 
 const NUMERO_DE_MESAS = 20;
 let mesasOcupadas = [];
@@ -1062,6 +1124,35 @@ function seleccionarMesa(numeroMesa) {
         }
 
         function seleccionarArticulo(id, nombre, precio) {
+        // Si es propina, preguntar el monto
+if (id === 999) {
+    const monto = prompt('💰 ¿Cuánto es la propina?');
+    if (monto === null) return;
+    const propina = parseInt(monto);
+    if (isNaN(propina) || propina <= 0) {
+        alert('❌ Ingresa un valor válido');
+        return;
+    }
+    const indexPropina = pedidoActual.findIndex(item => item.id === 999);
+    if (indexPropina !== -1) {
+        if (confirm(`Ya hay una propina de ${formatearPrecio(pedidoActual[indexPropina].subtotal)}.\n¿Deseas reemplazarla?`)) {
+            pedidoActual[indexPropina].precio = propina;
+            pedidoActual[indexPropina].subtotal = propina;
+        }
+    } else {
+        pedidoActual.push({
+            id: 999,
+            nombre: '💰 Propina',
+            precio: propina,
+            cantidad: 1,
+            subtotal: propina
+        });
+    }
+    mostrarResumen();
+    document.querySelectorAll('.articulo').forEach(btn => btn.classList.remove('seleccionado'));
+    return;
+}
+
             document.querySelectorAll('.articulo').forEach(btn => btn.classList.remove('seleccionado'));
             document.getElementById(`art-${id}`).classList.add('seleccionado');
             articuloSeleccionado = { id, nombre, precio };
@@ -1244,16 +1335,54 @@ const pedidoFinal = {
 }
 
 
-
 function cargarPedidos() {
-  pedidosRef.on('value', (snapshot) => {
-    const pedidos = [];
-    snapshot.forEach(childSnapshot => {
-      pedidos.push({ key: childSnapshot.key, ...childSnapshot.val() });
+    pedidosRef.once('value', (snapshot) => {
+        const pedidos = snapshot.val();
+        
+        if (!pedidos) {
+            mostrarPedidos([]);
+            return;
+        }
+        
+        // Convertir a array con keys
+        let pedidosArray = Object.entries(pedidos).map(([key, pedido]) => ({
+            ...pedido,
+            key: key
+        }));
+        
+        // Aplicar filtro según la opción seleccionada
+        const ahora = new Date();
+        
+        if (filtroActual === 'hoy') {
+            pedidosArray = pedidosArray.filter(pedido => {
+                return esMismaFecha(pedido.fechaCompleta, ahora);
+            });
+        } else if (filtroActual === 'ayer') {
+            const ayer = new Date();
+            ayer.setDate(ayer.getDate() - 1);
+            pedidosArray = pedidosArray.filter(pedido => {
+                return esMismaFecha(pedido.fechaCompleta, ayer);
+            });
+        } else if (filtroActual === 'semana') {
+            pedidosArray = pedidosArray.filter(pedido => {
+                return estaEnRango(pedido.fechaCompleta, 7);
+            });
+        } else if (filtroActual === 'personalizada') {
+            const fechaSeleccionada = document.getElementById('fechaPersonalizada').value;
+            if (fechaSeleccionada) {
+                pedidosArray = pedidosArray.filter(pedido => {
+                    const fechaPedido = new Date(pedido.fechaCompleta);
+                    const fechaBuscada = new Date(fechaSeleccionada);
+                    return esMismaFecha(fechaPedido, fechaBuscada);
+                });
+            }
+        }
+        // Si es 'todo', no se filtra nada
+        
+        mostrarPedidos(pedidosArray);
     });
-    mostrarPedidos(pedidos);
-  });
 }
+
 
 
 function mostrarPedidos(pedidos) {
@@ -1590,7 +1719,55 @@ window.onclick = function(event) {
         if (sessionStorage.getItem('accesoPermitido') === 'true') {
             inicializar();
         }
-      
+      // Función para filtrar por fecha
+function filtrarPorFecha(tipo) {
+    filtroActual = tipo;
+    
+    // Actualizar botones activos
+    document.querySelectorAll('.filtro-btn').forEach(btn => {
+        btn.classList.remove('activo');
+    });
+    event.target.classList.add('activo');
+    
+    // Limpiar el selector de fecha personalizado
+    document.getElementById('fechaPersonalizada').value = '';
+    
+    cargarPedidos();
+}
+
+// Función para filtrar por fecha personalizada
+function filtrarPorFechaPersonalizada() {
+    const fechaSeleccionada = document.getElementById('fechaPersonalizada').value;
+    
+    if (!fechaSeleccionada) return;
+    
+    filtroActual = 'personalizada';
+    
+    // Remover clase activo de todos los botones
+    document.querySelectorAll('.filtro-btn').forEach(btn => {
+        btn.classList.remove('activo');
+    });
+    
+    cargarPedidos();
+}
+
+// Función auxiliar para comparar fechas
+function esMismaFecha(fecha1, fecha2) {
+    const d1 = new Date(fecha1);
+    const d2 = new Date(fecha2);
+    return d1.getFullYear() === d2.getFullYear() &&
+           d1.getMonth() === d2.getMonth() &&
+           d1.getDate() === d2.getDate();
+}
+
+// Función auxiliar para verificar si una fecha está en un rango
+function estaEnRango(fecha, diasAtras) {
+    const ahora = new Date();
+    const fechaPedido = new Date(fecha);
+    const diferencia = Math.floor((ahora - fechaPedido) / (1000 * 60 * 60 * 24));
+    return diferencia <= diasAtras;
+}
+
 
     </script>
 </body>
