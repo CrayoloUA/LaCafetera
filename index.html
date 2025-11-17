@@ -563,6 +563,25 @@
         button.btn-cancelar-modal:hover {
             background: #ccc;
         }
+        .btn-propina {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #8B4513;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: 0.3s;
+}
+
+.btn-propina:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(255, 215, 0, 0.4);
+}
+
         
         @media (max-width: 600px) {
             body { padding: 8px; }
@@ -802,10 +821,8 @@
     <div id="mesaError" style="color: red; margin-bottom: 10px; display: none; font-weight: bold;"></div>
     <div id="contenedorMesas" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 15px;"></div>
     <input type="hidden" id="mesaSeleccionada" value="">
-</div>
 
-    <input type="hidden" id="mesaSeleccionada" value="">
-</div>
+
 
 
         <div class="seccion">
@@ -839,7 +856,7 @@
         </div>
         
         <div class="lista-pedidos">
-           <div class="lista-pedidos">
+          
     <h2>📋 Historial de Pedidos</h2>
     <!-- Filtros de Fecha -->
 <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 15px;">
@@ -876,6 +893,7 @@
             <div id="modalCuerpo"></div>
             <div class="modal-botones">
                 <button class="btn-agregar-modal" onclick="agregarAlPedidoEditado()">➕ Agregar Artículo</button>
+                <button class="btn-propina" onclick="agregarPropina()">💰 Agregar Propina</button>
                 <button class="btn-cancelar-modal" onclick="cerrarModal()">❌ Cancelar</button>
             </div>
         </div>
@@ -934,9 +952,7 @@ function verificarAcceso() {
 
 
        const ARTICULOS = {
-            "Propina": [
-    { id: 999, nombre: "💰 Propina", precio: 0 } // precio 0 porque se preguntará al agregar
-  ],
+      
   "Bebidas Calientes": [
     { id: 1, nombre: "Espresso", precio: 5500 },
     { id: 2, nombre: "Espresso Doble", precio: 6000 },
@@ -1038,20 +1054,22 @@ function verificarAcceso() {
 }
 // let filtroActual = 'hoy';  
 
-const NUMERO_DE_MESAS = 20;
+const NUMERO_DE_MESAS = 10;
+const MESAS_PARA_LLEVAR = [11, 12, 13]; // Estas son "Para Llevar"
 let mesasOcupadas = [];
 let mesaSeleccionada = null;
 
 function cargarEstadoMesas() {
   pedidosRef.on('value', (snapshot) => {
     const pedidos = snapshot.val();
-    mesasOcupadas = []; // Reiniciar
+    mesasOcupadas = [];
     
     if (pedidos) {
       Object.values(pedidos).forEach(pedido => {
-        // La mesa DEBE estar ocupada si el pedido es "pendiente" O "preparado"
-        // Solo se libera cuando es "pagado"
-        if ((pedido.estado === 'pendiente' || pedido.estado === 'preparado') && pedido.mesa) {
+        // Solo marcar como ocupadas si NO es "Para Llevar"
+        if ((pedido.estado === 'pendiente' || pedido.estado === 'preparado') && 
+            pedido.mesa && 
+            !MESAS_PARA_LLEVAR.includes(parseInt(pedido.mesa))) {
           mesasOcupadas.push(parseInt(pedido.mesa));
         }
       });
@@ -1064,27 +1082,73 @@ function renderizarMesas() {
     const contenedor = document.getElementById('contenedorMesas');
     contenedor.innerHTML = '';
     
-    for (let i = 1; i <= NUMERO_DE_MESAS; i++) {
+    for (let i = 1; i <= NUMERO_DE_MESAS + MESAS_PARA_LLEVAR.length; i++) {
         const ocupada = mesasOcupadas.includes(i);
-        const boton = document.createElement('div');
-        boton.className = 'mesa-boton ' + (ocupada ? 'ocupada' : 'libre');
-        if (mesaSeleccionada === i) boton.classList.add('seleccionada');
+        const esParaLlevar = MESAS_PARA_LLEVAR.includes(i);
         
-        // Si es mesa 20, mostrar "⭐ VIP" en lugar de "Mesa 20"
-        const nombreMesa = i === 20 ? '⭐ VIP' : `Mesa ${i}`;
+        const boton = document.createElement('div');
+        boton.className = 'mesa-boton';
+        
+        // Estilos para "Para Llevar"
+        if (esParaLlevar) {
+            boton.style.background = 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)';
+            boton.style.color = 'white';
+            boton.style.borderColor = '#FF9800';
+            if (mesaSeleccionada === i) boton.classList.add('seleccionada');
+        } else {
+            boton.className += ' ' + (ocupada ? 'ocupada' : 'libre');
+            if (mesaSeleccionada === i) boton.classList.add('seleccionada');
+        }
+        
+        // Nombre de la mesa
+        let nombreMesa;
+        if (i === 10) {
+            nombreMesa = '⭐ VIP';
+        } else if (esParaLlevar) {
+            nombreMesa = '📦 Para Llevar';
+        } else {
+            nombreMesa = `Mesa ${i}`;
+        }
+        
+        // Icono y estado
+        let icono = '🟢';
+        let estado = 'Libre';
+        
+        if (esParaLlevar) {
+            icono = '📦';
+            estado = 'Llevar';
+        } else if (ocupada) {
+            icono = '🔴';
+            estado = 'Ocupada';
+        }
         
         boton.innerHTML = `
-            <div style="font-size: 20px; margin-bottom: 5px;">${ocupada ? '🔴' : '🟢'}</div>
+            <div style="font-size: 20px; margin-bottom: 5px;">${icono}</div>
             <div>${nombreMesa}</div>
-            <div style="font-size: 11px; margin-top: 3px;">${ocupada ? 'Ocupada' : 'Libre'}</div>
+            <div style="font-size: 11px; margin-top: 3px;">${estado}</div>
         `;
         
+        // Click solo si no está ocupada (o si es Para Llevar)
         if (!ocupada) {
             boton.onclick = () => seleccionarMesa(i);
         }
+        
         contenedor.appendChild(boton);
     }
 }
+
+// FUNCIÓN PARA MOSTRAR "PARA LLEVAR" EN EL HISTORIAL
+function obtenerNombreMesa(numeromesa) {
+    const mesaNum = parseInt(numeromesa);
+    if (MESAS_PARA_LLEVAR.includes(mesaNum)) {
+        return '📦 Para Llevar';
+    } else if (mesaNum === 10) {
+        return '⭐ VIP';
+    } else {
+        return `🪑 Mesa: ${mesaNum}`;
+    }
+}
+
 
 function seleccionarMesa(numeroMesa) {
     mesaSeleccionada = numeroMesa;
@@ -1336,7 +1400,7 @@ const pedidoFinal = {
 
 
 function cargarPedidos() {
-    pedidosRef.once('value', (snapshot) => {
+    pedidosRef.on('value', (snapshot) => {
         const pedidos = snapshot.val();
         
         if (!pedidos) {
@@ -1429,10 +1493,11 @@ function mostrarPedidos(pedidos) {
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       ">
         <!-- Encabezado con Mesa y Hora -->
-        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-          <div style="font-weight: bold; font-size: 16px;">🪑 ${parseInt(pedido.mesa) === 20 ? '⭐ VIP' : 'Mesa: ' + pedido.mesa}</div>
-          <div style="color: #999; font-size: 13px;">🕐 ${pedido.fecha}</div>
-        </div>
+<div style="font-weight: bold; font-size: 16px;">
+${[11, 12, 13].includes(parseInt(pedido.mesa)) ? '📦 Para Llevar' : '🪑 ' + (parseInt(pedido.mesa) === 20 ? '⭐ VIP' : 'Mesa: ' + pedido.mesa)}
+</div>
+
+
 
         <!-- Estado del Pedido -->
         <div style="background: ${estadoColor}; color: white; padding: 8px 12px; border-radius: 6px; font-weight: bold; margin-bottom: 10px; text-align: center;">
@@ -1454,10 +1519,17 @@ function mostrarPedidos(pedidos) {
           </div>
         ` : ''}
 
-        <!-- Total -->
-        <div style="margin: 10px 0; font-weight: bold; font-size: 16px; color: #8B4513;">
-          💰 Total: $${pedido.total.toLocaleString()}
-        </div>
+   <!-- Propina (si existe) -->
+${pedido.propina && pedido.propina > 0 ? `
+    <div style="margin:8px 0; padding:10px 12px; background:linear-gradient(135deg,#FFD700,#FFA500); color:#8B4513; border-radius:6px; font-weight:bold; text-align:center; box-shadow:0 2px 6px rgba(255,215,0,0.3)">
+        🎁 Propina: ${formatearPrecio(pedido.propina)}
+    </div>
+` : ''}
+
+<!-- Total -->
+<div style="margin:10px 0; font-weight:bold; font-size:16px; color:#8B4513">
+    💰 Total: ${formatearPrecio(pedido.total)}
+</div>
 
         <!-- Botones de Acción -->
         <div class="pedido-botones" style="display: flex; gap: 8px; margin-top: 12px;">
@@ -1767,6 +1839,110 @@ function estaEnRango(fecha, diasAtras) {
     const diferencia = Math.floor((ahora - fechaPedido) / (1000 * 60 * 60 * 24));
     return diferencia <= diasAtras;
 }
+
+function agregarPropina() {
+    const pedidoKey = pedidoActualEditando; // Variable que tienes del pedido actual
+    
+    Swal.fire({
+        title: '💰 Agregar Propina',
+        input: 'number',
+        inputLabel: '¿Cuánto dejó de propina el cliente?',
+        inputPlaceholder: 'Ejemplo: 5000',
+        showCancelButton: true,
+        confirmButtonText: '✅ Agregar',
+        cancelButtonText: '❌ Cancelar',
+        confirmButtonColor: '#8B4513',
+        inputAttributes: {
+            min: 0,
+            step: 1000
+        },
+        inputValidator: (value) => {
+            if (!value || value < 0) {
+                return '⚠️ Ingresa una propina válida';
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const propina = parseInt(result.value);
+            
+            // Actualizar en Firebase
+            database.ref(`pedidos/${pedidoKey}`).once('value').then((snapshot) => {
+                const pedido = snapshot.val();
+                const nuevoTotal = (pedido.subtotal || pedido.total) + propina;
+                
+                database.ref(`pedidos/${pedidoKey}`).update({
+                    propina: propina,
+                    total: nuevoTotal
+                }).then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '✅ Propina agregada',
+                        text: `Se agregó $${propina.toLocaleString('es-CO')} de propina`,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    
+                    // Recargar pedidos
+                    cargarPedidos();
+                    cerrarModalEditar(); // Cierra el modal
+                });
+            });
+        }
+    });
+}
+
+
+function agregarPropina() {
+    if (!pedidoEditandoId) {
+        alert('⚠️ Error: No se encontró el pedido');
+        return;
+    }
+    
+    const propina = prompt('💰 ¿Cuánto dejó de propina el cliente?\n\nEjemplo: 5000');
+    
+    if (propina === null) {
+        return; // Usuario canceló
+    }
+    
+    const propinaNumero = parseInt(propina.replace(/\D/g, '')); // Elimina todo excepto números
+    
+    if (isNaN(propinaNumero) || propinaNumero < 0) {
+        alert('⚠️ Por favor ingresa un número válido');
+        return;
+    }
+    
+    // Actualizar en Firebase
+    pedidosRef.child(pedidoEditandoId).once('value').then(snapshot => {
+        const pedido = snapshot.val();
+        
+        if (!pedido) {
+            alert('❌ Error: Pedido no encontrado');
+            return;
+        }
+        
+        // Calcular nuevo total
+        const subtotal = pedido.items.reduce((sum, item) => sum + item.subtotal, 0);
+        const nuevoTotal = subtotal + propinaNumero;
+        
+        // Actualizar en Firebase
+        pedidosRef.child(pedidoEditandoId).update({
+            propina: propinaNumero,
+            total: nuevoTotal
+        }).then(() => {
+            alert(`✅ Propina de $${propinaNumero.toLocaleString('es-CO')} agregada correctamente`);
+            cargarPedidos();
+            cerrarModal();
+        }).catch(error => {
+            alert('❌ Error: ' + error.message);
+        });
+    });
+}
+
+
+
+
+
+
 
 
     </script>
