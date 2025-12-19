@@ -795,20 +795,7 @@
     </style>
 </head>
 <body>
-     <div id="loginScreen" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%); z-index: 9999; justify-content: center; align-items: center;">
-        <div style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); max-width: 400px; width: 90%;">
-            <h2 style="text-align: center; color: #8B4513; margin-bottom: 20px;">☕ La Cafetera</h2>
-            <h3 style="text-align: center; color: #666; margin-bottom: 30px; font-size: 18px;">Acceso para Empleados</h3>
-            
-            <input type="password" id="loginPassword" placeholder="Contraseña" style="width: 100%; padding: 14px; margin-bottom: 20px; border: 2px solid #D2B48C; border-radius: 8px; font-size: 16px;">
-            
-           <button id="btnEntrar" onclick="verificarAcceso()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;">
-                Entrar
-            </button>
-            
-            <div id="loginError" style="color: red; text-align: center; margin-top: 15px; display: none; font-weight: bold;">Contraseña incorrecta</div>
-        </div>
-    </div>
+     
     
     <div class="container">
         <div class="header">
@@ -927,27 +914,6 @@
         // 🔒 SISTEMA DE SEGURIDAD
 // Hash de la contraseña
 // 🔒 SISTEMA DE SEGURIDAD SIMPLE
-const PASS = "lacafetera";
-
-function verificarAcceso() {
-  const password = document.getElementById('loginPassword').value;
-  const errorDiv = document.getElementById('loginError');
-  if (!password) {
-    errorDiv.textContent = 'Por favor ingresa la contraseña';
-    errorDiv.style.display = 'block';
-    return;
-  }
-  if (password === PASS) {
-    sessionStorage.setItem('accesoPermitido', 'true');
-    document.getElementById('loginScreen').style.display = 'none';
-    errorDiv.style.display = 'none';
-    inicializar();
-  } else {
-    errorDiv.textContent = 'Contraseña incorrecta';
-    errorDiv.style.display = 'block';
-    document.getElementById('loginPassword').value = '';
-  }
-}
 
 
 
@@ -975,8 +941,20 @@ function verificarAcceso() {
   "Bebidas Frías": [
     { id: 17, nombre: "Granizado de Café", precio: 13800 },
     { id: 18, nombre: "Milo Frío", precio: 12800 },
-    { id: 19, nombre: "Frappeado", precio: 15800 },
-    { id: 20, nombre: "Malteada", precio: 16800 },
+    { id: 67, nombre: "Frapeado Mora", precio: 16800 },
+    { id: 68, nombre: "Frapeado Fresa", precio: 16800 },
+    { id: 69, nombre: "Frapeado Milo", precio: 16800 },
+    { id: 70, nombre: "Frapeado Chocolate", precio: 16800 },
+    { id: 71, nombre: "Frapeado Vainilla", precio: 16800 },
+    { id: 72, nombre: "Frapeado Arequipe", precio: 16800 },
+    { id: 73, nombre: "Frapeado Cafe", precio: 16800 },
+    { id: 20, nombre: "Malteada Mora", precio: 16800 },
+    { id: 66, nombre: "Malteada Fresa", precio: 16800 },
+    { id: 61, nombre: "Malteada Milo", precio: 16800 },
+    { id: 62, nombre: "Malteada Chocolate", precio: 16800 },
+    { id: 63, nombre: "Malteada Vainilla", precio: 16800 },
+    { id: 64, nombre: "Malteada Arequipe", precio: 16800 },
+    { id: 65, nombre: "Malteada Cafe", precio: 16800 },
     { id: 21, nombre: "Jugo en Agua", precio: 9800 },
     { id: 22, nombre: "Jugo en Leche", precio: 11800 },
     { id: 39, nombre: "Agua", precio: 5500 },
@@ -985,7 +963,10 @@ function verificarAcceso() {
     { id: 59, nombre: "Chai Frío", precio: 12800 },
     { id: 43, nombre: "Coca Cola", precio: 5500 },
     { id: 44, nombre: "Coca Zero", precio: 5500 },
-    { id: 45, nombre: "Guarapo", precio: 14000 }
+    { id: 45, nombre: "Guarapo", precio: 14000 },
+    { id: 58, nombre: "Soda", precio: 5500 },
+    { id: 74, nombre: "Americano Frio", precio: 12800 },
+    { id: 60, nombre: "Latte Frio", precio: 12800 }
   ],
   "Panadería y Pastelería": [
     { id: 23, nombre: "Waflebonos x 4", precio: 8800 },
@@ -1042,7 +1023,7 @@ function verificarAcceso() {
 
     function inicializar() {
     // Solo inicializar si tiene acceso
-    if (sessionStorage.getItem('accesoPermitido') === 'true') {
+    
         renderizarCategorias();
         renderizarArticulos();
         cargarPedidos();
@@ -1051,7 +1032,7 @@ function verificarAcceso() {
         cargarEstadoMesas();
         });
     }
-}
+
 // let filtroActual = 'hoy';  
 
 const NUMERO_DE_MESAS = 10;
