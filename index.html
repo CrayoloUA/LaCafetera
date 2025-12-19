@@ -1763,15 +1763,11 @@ function cerrarModal() {
 
 window.onclick = function(event) {
     const modal = document.getElementById('modalEditar');
-    if (event.target === modal) {
-        cerrarModal();
-    }
-}
+    if (event.target === modal) cerrarModal();
+};
 
-
-         // Solo inicializar si está autenticado
-        
-    window.addEventListener('load', inicializar);
+// Inicializar siempre al cargar
+window.addEventListener('load', inicializar);
         }
       // Función para filtrar por fecha
 function filtrarPorFecha(tipo) {
