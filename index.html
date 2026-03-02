@@ -5,790 +5,833 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>La Cafetera - Comandas</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { height: 100%; }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f0e8 0%, #efe9df 100%);
-            padding: 10px;
-            overflow-x: hidden;
-            color: #333;
-        }
-        .container { max-width: 900px; margin: 0 auto; }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-            padding: clamp(20px, 5vw, 30px);
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(139, 69, 19, 0.2);
-            color: white;
-        }
-        h1 { 
-            font-size: clamp(28px, 7vw, 42px);
-            margin-bottom: 8px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-        .subtitulo { 
-            font-size: clamp(12px, 3vw, 14px);
-            opacity: 0.95;
-            letter-spacing: 1px;
-        }
-        
-        .seccion { 
-            background: white;
-            padding: clamp(15px, 4vw, 25px);
-            margin: 15px 0;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            border-top: 4px solid #8B4513;
-            transition: box-shadow 0.3s ease;
-        }
-        .seccion:hover { box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12); }
-        .seccion h2 { 
-            font-size: clamp(14px, 3.5vw, 16px);
-            color: #8B4513; 
-            margin-bottom: 16px; 
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .categorias { 
-            display: flex; 
-            gap: 10px; 
-            margin-bottom: 18px; 
-            flex-wrap: wrap;
-        }
-        button.categoria { 
-            padding: clamp(8px, 2.5vw, 10px) clamp(12px, 3vw, 16px);
-            background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
-            border: 2px solid #ddd; 
-            cursor: pointer; 
-            border-radius: 8px;
-            font-size: clamp(11px, 2.5vw, 13px);
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            flex: 1;
-            min-width: 100px;
-            font-weight: 500;
-        }
-        button.categoria:hover { 
-            border-color: #8B4513;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(139, 69, 19, 0.15);
-        }
-        button.categoria.activa { 
-            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-            color: white; 
-            border-color: #8B4513;
-            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
-        }
-        
-        .articulos { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(clamp(100px, 22vw, 140px), 1fr)); 
-            gap: clamp(10px, 2.5vw, 14px);
-        }
-        button.articulo { 
-            padding: clamp(12px, 3vw, 14px);
-            background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
-            border: 2px solid #e0d5c8; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            font-size: clamp(11px, 2.5vw, 12px);
-            text-align: center;
-            transition: all 0.3s ease;
-            line-height: 1.5;
-            display: flex;
-            flex-direction: column;
-            min-height: 110px;
-            font-weight: 500;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        }
-        button.articulo:hover { 
-            border-color: #8B4513;
-            background: linear-gradient(135deg, #fff8f0 0%, #ffefeb 100%);
-            transform: translateY(-4px);
-            box-shadow: 0 6px 12px rgba(139, 69, 19, 0.15);
-        }
-        button.articulo:active { transform: scale(0.97); }
-        button.articulo.seleccionado { 
-            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-            color: white; 
-            border-color: #8B4513;
-            box-shadow: 0 6px 14px rgba(139, 69, 19, 0.3);
-        }
-        .nombre { 
-            flex: 1; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            margin-bottom: 8px; 
-            word-break: break-word;
-        }
-        .precio { 
-            display: block; 
-            font-weight: 700;
-            padding-top: 8px; 
-            border-top: 2px solid #e0d5c8; 
-            color: #8B4513;
-            font-size: clamp(12px, 2.5vw, 14px);
-        }
-        button.articulo.seleccionado .precio { 
-            color: #fff;
-            border-top-color: rgba(255,255,255,0.3);
-        }
-        
-        .cantidad-control { 
-            display: flex; 
-            gap: clamp(10px, 2.5vw, 12px);
-            align-items: center; 
-            margin: 20px 0; 
-            justify-content: center;
-            flex-wrap: wrap;
-            background: #f9f6f1;
-            padding: clamp(12px, 3vw, 16px);
-            border-radius: 10px;
-        }
-        .cantidad-control label { 
-            font-weight: 600;
-            color: #8B4513;
-            font-size: clamp(13px, 3vw, 14px);
-        }
-        .cantidad-control button { 
-            padding: clamp(8px, 2.5vw, 10px) clamp(14px, 3vw, 18px);
-            background: linear-gradient(135deg, #D2B48C 0%, #C19A6B 100%);
-            color: white;
-            border: none; 
-            cursor: pointer; 
-            border-radius: 6px;
-            font-size: clamp(16px, 4vw, 18px);
-            transition: all 0.3s ease;
-            font-weight: bold;
-            box-shadow: 0 3px 8px rgba(139, 69, 19, 0.2);
-        }
-        .cantidad-control button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 10px rgba(139, 69, 19, 0.3);
-        }
-        .cantidad-control button:active { transform: scale(0.95); }
-        .cantidad-control input { 
-            width: clamp(60px, 14vw, 80px); 
-            padding: clamp(8px, 2.5vw, 10px);
-            text-align: center; 
-            font-size: clamp(14px, 3vw, 16px);
-            border: 2px solid #D2B48C;
-            border-radius: 6px;
-            font-weight: bold;
-            color: #8B4513;
-        }
-        
-        button.agregar { 
-            width: 100%; 
-            padding: clamp(12px, 3.5vw, 16px);
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            font-size: clamp(13px, 3vw, 16px);
-            font-weight: bold; 
-            cursor: pointer; 
-            margin-top: 16px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        button.agregar:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(76, 175, 80, 0.3);
-        }
-        button.agregar:active { transform: scale(0.98); }
-        
-        .resumen-pedido { 
-            background: linear-gradient(135deg, #fff8f0 0%, #ffe8d6 100%);
-            border: 2px solid #D2B48C;
-            border-top: 4px solid #8B4513;
-        }
-        .resumen-item { 
-            display: flex; 
-            justify-content: space-between; 
-            padding: clamp(12px, 3vw, 14px);
-            border-bottom: 1px solid #e0d5c8;
-            font-size: clamp(12px, 2.5vw, 14px);
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 6px;
-            margin-bottom: 8px;
-            transition: background 0.3s ease;
-        }
-        .resumen-item:hover { background: rgba(255, 255, 255, 0.9); }
-        .resumen-item span:first-child { flex: 1; font-weight: 500; }
-        .resumen-item span:last-child { display: flex; gap: 8px; align-items: center; }
-        button.quitar { 
-            padding: clamp(5px, 2vw, 6px) clamp(10px, 2.5vw, 12px);
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-            color: white; 
-            border: none; 
-            cursor: pointer; 
-            border-radius: 5px; 
-            font-size: clamp(10px, 2vw, 11px);
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            font-weight: 600;
-        }
-        button.quitar:hover { 
-            transform: scale(1.05);
-            box-shadow: 0 3px 8px rgba(220, 53, 69, 0.3);
-        }
-        button.quitar:active { transform: scale(0.95); }
-        
-        .total { 
-            font-weight: 700;
-            font-size: clamp(15px, 3.5vw, 18px);
-            padding: clamp(14px, 3.5vw, 18px);
-            border-top: 2px solid #8B4513;
-            color: #8B4513; 
-            display: flex; 
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 6px;
-            margin: 12px 0;
-        }
-        
-        .botones-pedido { 
-            display: flex; 
-            gap: 10px; 
-            margin-top: 16px;
-            flex-direction: column;
-        }
-        button.enviar, button.cancelar { 
-            padding: clamp(12px, 3.5vw, 16px);
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            font-weight: bold; 
-            cursor: pointer;
-            font-size: clamp(13px, 3vw, 15px);
-            transition: all 0.3s ease;
-            width: 100%;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        button.enviar { 
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-        }
-        button.enviar:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(76, 175, 80, 0.3);
-        }
-        button.cancelar { 
-            background: linear-gradient(135deg, #999 0%, #777 100%);
-        }
-        button.cancelar:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(100, 100, 100, 0.3);
-        }
-        button.enviar:active, button.cancelar:active { transform: scale(0.98); }
-        
-        .lista-pedidos { 
-            background: white;
-            padding: clamp(18px, 4vw, 25px);
-            border-radius: 12px;
-            margin-top: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            border-top: 4px solid #8B4513;
-        }
-        .pedido-item { 
-            background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
-            padding: clamp(14px, 3.5vw, 18px);
-            margin: 12px 0; 
-            border-left: 5px solid #8B4513;
-            border-radius: 8px;
-            font-size: clamp(12px, 2.5vw, 13px);
-            transition: all 0.3s ease;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
-            position: relative;
-        }
-        .pedido-item:hover {
-            box-shadow: 0 5px 14px rgba(0, 0, 0, 0.12);
-            transform: translateY(-2px);
-        }
-        .pedido-item.completado {
-            opacity: 0.7;
-            background: linear-gradient(135deg, #e8e8e8 0%, #ddd 100%);
-        }
-        .pedido-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: flex-start;
-            margin-bottom: 12px; 
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .pedido-hora { 
-            font-weight: 700;
-            color: #8B4513;
-            font-size: clamp(12px, 2.5vw, 14px);
-            background: #fff8f0;
-            padding: 6px 12px;
-            border-radius: 6px;
-        }
-        .pedido-items { 
-            color: #555;
-            margin: 10px 0;
-            line-height: 1.8;
-            font-weight: 500;
-        }
-        .pedido-total { 
-            font-weight: 700;
-            font-size: clamp(13px, 2.5vw, 15px);
-            margin: 12px 0;
-            color: #8B4513;
-            background: #fff8f0;
-            padding: 8px 12px;
-            border-radius: 6px;
-            display: inline-block;
-        }
-        .pedido-botones { 
-            display: flex; 
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        button.completar, button.eliminar, button.editar { 
-            padding: clamp(6px, 2vw, 8px) clamp(10px, 2.5vw, 14px);
-            color: white; 
-            border: none; 
-            cursor: pointer; 
-            border-radius: 6px;
-            font-size: clamp(11px, 2vw, 12px);
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            font-weight: 600;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-        }
-        button.completar { 
-            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
-        }
-        button.completar:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 10px rgba(23, 162, 184, 0.3);
-        }
-        button.eliminar { 
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-        }
-        button.eliminar:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
-        }
-        button.editar {
-            background: linear-gradient(135deg, #FFC107 0%, #FFB300 100%);
-            color: #333;
-        }
-        button.editar:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
-        }
-        .completado .pedido-hora { text-decoration: line-through; }
-        
-        .sin-pedidos { 
-            color: #999; 
-            text-align: center; 
-            padding: clamp(30px, 8vw, 50px);
-            font-size: clamp(13px, 3vw, 15px);
-            font-weight: 500;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.3s ease;
-            overflow-y: auto;
-            padding-top: 20px;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        .modal-content {
-            background-color: white;
-            margin: 20px auto;
-            padding: 20px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-            animation: slideDown 0.3s ease;
-        }
-        @keyframes slideDown {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e0d5c8;
-            padding-bottom: 10px;
-        }
-        .modal-header h3 {
-            color: #8B4513;
-            font-size: 18px;
-        }
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #999;
-            transition: color 0.3s;
-        }
-        .close-btn:hover { color: #333; }
-        
-        .articulos-actuales {
-            background: #f9f6f1;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-        .articulos-actuales h4 {
-            color: #8B4513;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-        .item-actual {
-            background: white;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 4px solid #8B4513;
-        }
-        
-        .articulos-editar {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
-            margin: 15px 0;
-            max-height: 250px;
-            overflow-y: auto;
-        }
-        button.articulo-editar {
-            padding: 10px;
-            background: #f0f0f0;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 11px;
-            transition: all 0.3s;
-        }
-        button.articulo-editar:hover {
-            border-color: #8B4513;
-            background: #fff8f0;
-        }
-        button.articulo-editar.seleccionado-modal {
-            background: #8B4513;
-            color: white;
-            border-color: #8B4513;
-        }
-        .cantidad-modal {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin: 15px 0;
-        }
-        .cantidad-modal label {
-            font-weight: 600;
-            color: #8B4513;
-        }
-        .cantidad-modal button {
-            padding: 6px 10px;
-            background: #D2B48C;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .cantidad-modal input {
-            width: 80px;
-            padding: 8px;
-            font-size: 14px;
-            border: 2px solid #D2B48C;
-            border-radius: 6px;
-        }
-        .modal-botones {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-            flex-direction: column;
-        }
-        button.btn-agregar-modal, button.btn-cancelar-modal {
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            width: 100%;
-        }
-        button.btn-agregar-modal {
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-            color: white;
-        }
-        button.btn-agregar-modal:hover {
-            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
-        }
-        button.btn-cancelar-modal {
-            background: #ddd;
-            color: #333;
-        }
-        button.btn-cancelar-modal:hover {
-            background: #ccc;
-        }
-        .btn-propina {
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-    color: #8B4513;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 15px;
-    transition: 0.3s;
-}
-
-.btn-propina:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(255, 215, 0, 0.4);
-}
-
-        
-        @media (max-width: 600px) {
-            body { padding: 8px; }
-            .header { padding: 15px; margin-bottom: 15px; }
-            .seccion { padding: 12px; margin: 8px 0; }
-            .categorias { gap: 6px; }
-            button.categoria { min-width: 70px; }
-            .articulos { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
-            button.articulo { min-height: 100px; }
-            .botones-pedido { flex-direction: column; }
-            .pedido-header { flex-direction: column; align-items: flex-start; }
-            .modal-content { width: 95%; margin: 20px auto; padding: 15px; }
-        }
-        
-        @media (max-width: 400px) {
-            .articulos { grid-template-columns: repeat(2, 1fr); }
-            button.categoria { font-size: 10px; padding: 6px 8px; }
-            .cantidad-control { flex-direction: column; }
-            .cantidad-control label { width: 100%; }
-            .articulos-editar { grid-template-columns: repeat(2, 1fr); }
-        }
-        .filtros-fecha {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-}
-
-.filtro-btn {
-    padding: 10px 20px;
-    background: #f5f0e8;
-    border: 2px solid #D2B48C;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s;
-}
-
-.filtro-btn:hover {
-    background: #D2B48C;
-    color: white;
-}
-
-.filtro-btn.activo {
-    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-    color: white;
-    border-color: #8B4513;
-}
-
-.fecha-separador {
-    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-    color: white;
-    padding: 15px;
-    border-radius: 8px;
-    margin: 20px 0 10px 0;
-    font-weight: bold;
-    font-size: 18px;
-    text-align: center;
-}
-
-.pedido-completado {
-    opacity: 0.7;
-    border-left: 5px solid #4CAF50;
-}
-
-.pedido-activo {
-    border-left: 5px solid #ff4444;
-}
-.mesa-boton {
-    padding: 15px;
-    border: 3px solid #D2B48C;
-    border-radius: 12px;
-    background: white;
-    cursor: pointer;
-    text-align: center;
-    font-weight: bold;
-    transition: all 0.3s;
-    font-size: 16px;
-}
-
-.mesa-boton.libre {
-    border-color: #4CAF50;
-    background: #E8F5E9;
-}
-
-.mesa-boton.libre:hover {
-    background: #4CAF50;
-    color: white;
-    transform: scale(1.05);
-}
-
-.mesa-boton.ocupada {
-    border-color: #ff4444;
-    background: #FFEBEE;
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-.mesa-boton.seleccionada {
-    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-    color: white;
-    border-color: #8B4513;
-}
-.mesa-boton {
-    padding: 15px;
-    border: 3px solid #D2B48C;
-    border-radius: 12px;
-    background: white;
-    cursor: pointer;
-    text-align: center;
-    font-weight: bold;
-    transition: all 0.3s;
-    font-size: 16px;
-}
-
-.mesa-boton.libre {
-    border-color: #4CAF50;
-    background: #E8F5E9;
-}
-.mesa-boton.libre:hover {
-    background: #4CAF50;
-    color: white;
-    transform: scale(1.05);
-}
-.mesa-boton.ocupada {
-    border-color: #ff4444;
-    background: #FFEBEE;
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-.mesa-boton.seleccionada {
-    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-    color: white;
-    border-color: #8B4513;
-}
-.pedido-botones {
-  margin-top: 8px;
+        /* ── PEDIDO META ── */
+.pedido-meta {
   display: flex;
-  gap: 8px;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-.pedido-botones button {
-  padding: 6px 12px;
-  border-radius: 6px;
+.pedido-mesa {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── BADGES DE ESTADO ── */
+.pedido-estado-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.estado-pendiente-badge { background: #fff0f0; color: #cc0000; border: 1px solid #cc0000; }
+.estado-entregado-badge { background: #f0f6ff; color: #0275d8; border: 1px solid #0275d8; }
+.estado-pagado-badge    { background: #f0fff4; color: #1a7a3c; border: 1px solid #1a7a3c; }
+
+/* ── BORDE IZQUIERDO POR ESTADO ── */
+.estado-pendiente { border-left-color: #cc0000 !important; }
+.estado-entregado { border-left-color: #0275d8 !important; }
+.estado-pagado    { border-left-color: #1a7a3c !important; opacity: 0.65; }
+
+/* ── TIEMPO Y PROPINA ── */
+.pedido-tiempo {
+  font-size: 11px;
+  color: var(--gray-500);
+  letter-spacing: 0.05em;
+  margin: 6px 0;
+  padding: 6px 10px;
+  background: var(--gray-100);
+  border-left: 2px solid var(--gray-300);
+}
+
+.pedido-propina {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9a6500;
+  letter-spacing: 0.05em;
+  margin: 6px 0;
+  padding: 6px 10px;
+  background: #fffbf0;
+  border-left: 2px solid #9a6500;
+}
+
+  /* ── VARIABLES ── */
+:root {
+  --black: #111111;
+  --white: #ffffff;
+  --gray-100: #f5f5f5;
+  --gray-200: #e8e8e8;
+  --gray-300: #cccccc;
+  --gray-500: #888888;
+  --gray-700: #444444;
+  --danger: #cc0000;
+  --success: #1a7a3c;
+  --warning: #9a6500;
+  --info: #0066aa;
+  --font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --t: 0.18s ease;
+}
+
+/* ── RESET ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  font-family: var(--font);
+  background: var(--white);
+  color: var(--black);
+  font-size: 13px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+body { padding: 16px; overflow-x: hidden; }
+
+/* ── LAYOUT ── */
+.container { max-width: 960px; margin: 0 auto; }
+
+/* ── HEADER ── */
+.header {
+  text-align: center;
+  padding: 36px 20px 28px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--black);
+  background: var(--white);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.header h1 {
+  font-size: clamp(20px, 5vw, 32px);
+  font-weight: 300;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--black);
+  text-shadow: none;
+}
+
+.subtitulo {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  margin-top: 6px;
+  opacity: 1;
+}
+
+/* ── SECCIONES ── */
+.seccion {
+  background: var(--white);
+  padding: 24px 0;
+  margin: 0;
+  border-bottom: 1px solid var(--gray-200);
+  border-radius: 0;
+  box-shadow: none;
+  border-top: none;
+}
+
+.seccion:hover { box-shadow: none; }
+
+.seccion h2 {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  margin-bottom: 18px;
+}
+
+/* ── MESAS ── */
+.mesa-boton {
+  padding: 12px 8px;
+  border: 1px solid var(--gray-300);
+  border-radius: 0;
+  background: var(--white);
+  cursor: pointer;
+  text-align: center;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  transition: all var(--t);
+  color: var(--black);
+}
+
+.mesa-boton.libre { border-color: var(--gray-300); }
+.mesa-boton.libre:hover {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+}
+
+.mesa-boton.ocupada {
+  background: var(--gray-100);
+  color: var(--gray-300);
+  border-color: var(--gray-200);
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.mesa-boton.seleccionada {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+}
+
+/* ── CATEGORÍAS ── */
+.categorias {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+button.categoria {
+  padding: 10px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  transition: all var(--t);
+  white-space: nowrap;
+  flex: none;
+  min-width: unset;
+}
+
+button.categoria:hover { color: var(--black); }
+
+button.categoria.activa {
+  color: var(--black);
+  border-bottom: 2px solid var(--black);
+}
+
+/* ── ARTÍCULOS ── */
+.articulos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(90px, 18vw, 120px), 1fr));
+  gap: 1px;
+  background: var(--gray-200);
+  border: 1px solid var(--gray-200);
+  margin-bottom: 20px;
+}
+
+button.articulo {
+  padding: 14px 10px;
+  background: var(--white);
   border: none;
   cursor: pointer;
+  font-family: var(--font);
+  font-size: 11px;
+  text-align: center;
+  transition: background var(--t);
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  min-height: 85px;
+  font-weight: 400;
+  color: var(--black);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+button.articulo:hover { background: var(--gray-100); }
+button.articulo:active { background: var(--gray-200); transform: none; }
+button.articulo.seleccionado { background: var(--black); color: var(--white); }
+
+.nombre {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  word-break: break-word;
+  margin-bottom: 0;
+}
+
+.precio {
+  display: block;
+  font-weight: 600;
+  padding-top: 8px;
+  margin-top: 6px;
+  border-top: 1px solid var(--gray-200);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--black);
+}
+
+button.articulo.seleccionado .precio {
+  color: var(--white);
+  border-top-color: rgba(255,255,255,0.2);
+}
+
+/* ── CONTROL CANTIDAD ── */
+.cantidad-control {
+  display: flex;
+  gap: 0;
+  align-items: center;
+  margin: 20px 0;
+  justify-content: center;
+  flex-wrap: wrap;
+  background: var(--gray-100);
+  padding: 14px 16px;
+  border-radius: 0;
+}
+
+.cantidad-control label {
+  font-weight: 600;
+  color: var(--black);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-right: 12px;
+}
+
+.cantidad-control button {
+  padding: 8px 14px;
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 300;
+  transition: background var(--t);
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.cantidad-control button:hover { background: var(--gray-700); }
+.cantidad-control button:active { background: var(--gray-500); transform: none; }
+
+.cantidad-control input {
+  width: 60px;
+  padding: 8px;
+  text-align: center;
+  font-size: 14px;
+  font-family: var(--font);
+  border: none;
+  border-top: 1px solid var(--gray-300);
+  border-bottom: 1px solid var(--gray-300);
+  font-weight: 600;
+  color: var(--black);
+  background: var(--white);
+  border-radius: 0;
+}
+
+/* ── BOTÓN AGREGAR ── */
+button.agregar {
+  width: 100%;
+  padding: 14px;
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background var(--t);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+button.agregar:hover { background: var(--gray-700); }
+button.agregar:active { background: var(--gray-500); transform: none; }
+
+/* ── RESUMEN PEDIDO ── */
+.resumen-pedido {
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-top: 2px solid var(--black);
+  border-radius: 0;
+}
+
+.resumen-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--gray-200);
+  font-size: 12px;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: transparent;
+  border-radius: 0;
+  margin-bottom: 0;
+  transition: background var(--t);
+}
+
+.resumen-item:hover { background: var(--white); }
+.resumen-item span:first-child { flex: 1; font-weight: 400; }
+.resumen-item span:last-child { display: flex; gap: 8px; align-items: center; }
+
+button.quitar {
+  padding: 4px 10px;
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  transition: all var(--t);
+  border-radius: 0;
+  white-space: nowrap;
+}
+
+button.quitar:hover { background: var(--danger); color: var(--white); }
+
+.total {
   font-weight: 600;
   font-size: 14px;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  user-select: none;
+  padding: 16px;
+  border-top: 1px solid var(--black);
+  color: var(--black);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: transparent;
+  border-radius: 0;
+  margin: 0;
+  letter-spacing: 0.05em;
 }
 
-/* Botón Editar */
-.pedido-botones button:nth-child(1) {
-  background-color: #f0ad4e;
-  color: #fff;
+/* ── BOTONES PEDIDO ── */
+.botones-pedido {
+  display: flex;
+  gap: 1px;
+  margin-top: 12px;
+  flex-direction: row;
 }
 
-.pedido-botones button:nth-child(1):hover {
-  background-color: #ec971f;
+button.enviar, button.cancelar {
+  flex: 1;
+  padding: 14px;
+  color: var(--white);
+  border: none;
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--t);
+  border-radius: 0;
+  box-shadow: none;
 }
 
-/* Botón Completar - depende del estado */
-.pedido-botones button:nth-child(2) {
-  background-color: #5cb85c;
-  color: #fff;
+button.enviar { background: var(--black); }
+button.enviar:hover { background: var(--gray-700); }
+button.cancelar { background: var(--gray-500); }
+button.cancelar:hover { background: var(--gray-700); }
+button.enviar:active, button.cancelar:active { transform: none; }
+
+/* ── HISTORIAL DE PEDIDOS ── */
+.lista-pedidos {
+  background: var(--white);
+  padding: 28px 0;
+  border-radius: 0;
+  margin-top: 0;
+  box-shadow: none;
+  border-top: 2px solid var(--black);
 }
 
-.pedido-botones button:nth-child(2).deshacer {
-  background-color: #d9534f;
+.lista-pedidos h2 {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  margin-bottom: 20px;
 }
 
-.pedido-botones button:nth-child(2):hover {
-  background-color: #4cae4c;
+.pedido-item {
+  background: var(--white);
+  padding: 16px;
+  margin: 0 0 1px 0;
+  border-left: none;
+  border-radius: 0;
+  font-size: 12px;
+  transition: background var(--t);
+  box-shadow: none;
+  border: 1px solid var(--gray-200);
+  border-left: 3px solid var(--black);
+  position: relative;
 }
 
-.pedido-botones button:nth-child(2).deshacer:hover {
-  background-color: #c9302c;
+.pedido-item:hover { background: var(--gray-100); transform: none; box-shadow: none; }
+.pedido-item.completado { opacity: 0.5; background: var(--gray-100); }
+
+.pedido-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-/* Botón Eliminar */
-.pedido-botones button:nth-child(3) {
-  background-color: #d9534f;
-  color: #fff;
+.pedido-hora {
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--black);
+  letter-spacing: 0.05em;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
 }
 
-.pedido-botones button:nth-child(3):hover {
-  background-color: #c9302c;
+.pedido-items { color: var(--gray-700); margin: 8px 0; line-height: 1.8; font-weight: 400; }
+
+.pedido-total {
+  font-weight: 600;
+  font-size: 13px;
+  margin: 8px 0;
+  color: var(--black);
+  background: transparent;
+  padding: 0;
+  display: inline-block;
+  letter-spacing: 0.03em;
 }
+
+.pedido-botones { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 10px; }
+
+button.completar, button.eliminar, button.editar {
+  padding: 6px 12px;
+  color: var(--white);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: opacity var(--t);
+  white-space: nowrap;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+button.completar { background: var(--info); }
+button.eliminar { background: var(--danger); }
+button.editar { background: var(--black); color: var(--white); }
+button.completar:hover, button.eliminar:hover, button.editar:hover { opacity: 0.75; transform: none; box-shadow: none; }
+
+.completado .pedido-hora { text-decoration: line-through; }
+
+.sin-pedidos {
+  color: var(--gray-500);
+  text-align: center;
+  padding: 40px;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+/* ── FILTROS ── */
+.filtros-fecha {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
 .filtro-btn {
-    padding: 10px 15px;
-    background: white;
-    border: 2px solid #D2B48C;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-    color: #8B4513;
+  padding: 8px 14px;
+  background: var(--white);
+  border: 1px solid var(--gray-300);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: all var(--t);
+  color: var(--gray-700);
+  border-radius: 0;
 }
 
-.filtro-btn:hover {
-    background: #f5f0e8;
+.filtro-btn:hover { background: var(--gray-100); border-color: var(--black); color: var(--black); }
+.filtro-btn.activo { background: var(--black); color: var(--white); border-color: var(--black); }
+
+/* ── MODALES ── */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.4);
+  animation: fadeIn 0.2s ease;
+  overflow-y: auto;
+  padding-top: 20px;
+}
+/* Variantes siempre encima del modal de editar */
+#modalVariantes {
+  z-index: 1100;
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
-.filtro-btn.activo {
-    background: #8B4513;
-    color: white;
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal-content {
+  background: var(--white);
+  margin: 20px auto;
+  padding: 28px;
+  border-radius: 0;
+  width: 95%;
+  max-width: 780px;        /* antes 500px */
+  box-shadow: 0 4px 32px rgba(0,0,0,0.15);
+  animation: slideDown 0.2s ease;
+}
+
+
+@keyframes slideDown {
+  from { transform: translateY(-30px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--black);
+  padding-bottom: 12px;
+}
+
+.modal-header h3 {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--black);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--gray-500);
+  transition: color var(--t);
+  line-height: 1;
+}
+.close-btn:hover { color: var(--black); }
+
+/* ── MODAL EDITAR ── */
+.articulos-actuales {
+  background: var(--gray-100);
+  padding: 12px;
+  margin-bottom: 16px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.articulos-actuales h4 {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  margin-bottom: 10px;
+}
+
+.item-actual {
+  background: var(--white);
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-left: 2px solid var(--black);
+  font-size: 12px;
+}
+
+.articulos-editar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 1px;
+  background: var(--gray-200);
+  border: 1px solid var(--gray-200);
+  margin: 14px 0;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+button.articulo-editar {
+  padding: 10px 8px;
+  background: var(--white);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 10px;
+  text-align: center;
+  transition: background var(--t);
+  color: var(--black);
+  border-radius: 0;
+}
+
+button.articulo-editar:hover { background: var(--gray-100); }
+button.articulo-editar.seleccionado-modal { background: var(--black); color: var(--white); }
+
+.cantidad-modal {
+  display: flex;
+  gap: 0;
+  align-items: center;
+  margin: 14px 0;
+}
+
+.cantidad-modal label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--black);
+  margin-right: 12px;
+}
+
+.cantidad-modal button {
+  padding: 6px 12px;
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 0;
+}
+
+.cantidad-modal button:hover { background: var(--gray-700); }
+
+.cantidad-modal input {
+  width: 60px;
+  padding: 6px 8px;
+  font-size: 13px;
+  font-family: var(--font);
+  border: none;
+  border-top: 1px solid var(--gray-300);
+  border-bottom: 1px solid var(--gray-300);
+  text-align: center;
+  font-weight: 600;
+  background: var(--white);
+  border-radius: 0;
+}
+
+.modal-botones {
+  display: flex;
+  gap: 4px;
+  margin-top: 20px;
+  flex-direction: column;
+}
+
+button.btn-agregar-modal, button.btn-cancelar-modal, .btn-propina {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--t);
+  border-radius: 0;
+}
+
+button.btn-agregar-modal { background: var(--black); color: var(--white); }
+button.btn-agregar-modal:hover { background: var(--gray-700); box-shadow: none; }
+button.btn-cancelar-modal { background: var(--gray-200); color: var(--black); }
+button.btn-cancelar-modal:hover { background: var(--gray-300); }
+.btn-propina { background: var(--gray-100); color: var(--black); border: 1px solid var(--gray-300); }
+.btn-propina:hover { background: var(--gray-200); transform: none; box-shadow: none; }
+
+/* ── VARIANTES ── */
+.variante-btn {
+  padding: 12px 8px;
+  background: var(--white);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 11px;
+  text-align: center;
+  transition: background var(--t);
+  font-weight: 400;
+  color: var(--black);
+  border-radius: 0;
+}
+
+.variante-btn:hover { background: var(--gray-100); transform: none; box-shadow: none; }
+.variante-btn.seleccionada-variante { background: var(--black); color: var(--white); }
+.variante-btn.seleccionada-variante small { color: var(--white) !important; }
+
+/* ── ESTADOS PEDIDO (colores funcionales, no decorativos) ── */
+.pedido-activo  { border-left-color: var(--danger) !important; }
+.pedido-completado { border-left-color: var(--success) !important; }
+
+/* ── INPUT FECHA ── */
+input[type="date"] {
+  padding: 8px 10px;
+  border: 1px solid var(--gray-300);
+  border-radius: 0;
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--black);
+  background: var(--white);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  body { padding: 8px; }
+  .header { padding: 20px 12px; }
+  .seccion { padding: 16px 0; }
+  .categorias { gap: 0; }
+  button.categoria { padding: 8px 12px; min-width: 60px; }
+  .articulos { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+  button.articulo { min-height: 75px; }
+  .botones-pedido { flex-direction: column; }
+  .pedido-header { flex-direction: column; align-items: flex-start; }
+  .modal-content { width: 95%; margin: 10px auto; padding: 18px; }
+}
+
+@media (max-width: 400px) {
+  .articulos { grid-template-columns: repeat(2, 1fr); }
+  button.categoria { font-size: 9px; padding: 6px 8px; }
+  .cantidad-control { flex-direction: column; gap: 8px; }
+  .articulos-editar { grid-template-columns: repeat(2, 1fr); }
+}
+
+.mesa-boton.para-llevar {
+  border-color: #b85c00;
+  color: #b85c00;
+  font-weight: 600;
+}
+.mesa-boton.para-llevar:hover {
+  background: #b85c00;
+  color: var(--white);
+}
+.mesa-boton.para-llevar.seleccionada {
+  background: #b85c00;
+  color: var(--white);
+  border-color: #b85c00;
 }
 
 
@@ -871,6 +914,39 @@
 
 
     <!-- Modal para editar pedidos -->
+     <!-- Modal de Variantes -->
+<div id="modalVariantes" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalVariantesNombre">Elige el sabor</h3>
+      <button class="close-btn" onclick="cerrarModalVariantes()">&times;</button>
+    </div>
+
+    <div id="listaVariantes" style="
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+      margin: 15px 0;
+    "></div>
+
+    <div class="cantidad-control" style="margin-top: 10px;">
+      <label>Cantidad</label>
+      <button onclick="restarCantidadVariante()">−</button>
+      <input type="number" id="cantidadVariante" value="1" min="1">
+      <button onclick="sumarCantidadVariante()">+</button>
+    </div>
+
+    <div class="modal-botones">
+      <button class="btn-agregar-modal" onclick="confirmarVariante()">
+        Agregar al Pedido
+      </button>
+      <button class="btn-cancelar-modal" onclick="cerrarModalVariantes()">
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>
+
     <div id="modalEditar" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -941,22 +1017,21 @@
   "Bebidas Frías": [
     { id: 17, nombre: "Granizado de Café", precio: 13800 },
     { id: 18, nombre: "Milo Frío", precio: 12800 },
-    { id: 67, nombre: "Frapeado Mora", precio: 15800 },
-    { id: 68, nombre: "Frapeado Fresa", precio: 15800 },
-    { id: 69, nombre: "Frapeado Milo", precio: 15800 },
-    { id: 70, nombre: "Frapeado Chocolate", precio: 15800 },
-    { id: 71, nombre: "Frapeado Vainilla", precio: 15800 },
-    { id: 72, nombre: "Frapeado Arequipe", precio: 15800 },
-    { id: 73, nombre: "Frapeado Cafe", precio: 15800 },
-    { id: 20, nombre: "Malteada Mora", precio: 16800 },
-    { id: 66, nombre: "Malteada Fresa", precio: 16800 },
-    { id: 61, nombre: "Malteada Milo", precio: 16800 },
-    { id: 62, nombre: "Malteada Chocolate", precio: 16800 },
-    { id: 63, nombre: "Malteada Vainilla", precio: 16800 },
-    { id: 64, nombre: "Malteada Arequipe", precio: 16800 },
-    { id: 65, nombre: "Malteada Cafe", precio: 16800 },
-    { id: 21, nombre: "Jugo en Agua", precio: 9800 },
-    { id: 22, nombre: "Jugo en Leche", precio: 11800 },
+   { id: 21, nombre: "Jugo en Agua", precio: 9800, tieneVariantes: true, variantes: [
+  "Mora", "Mango", "Lulo", "Maracuyá",
+  "Guanábana"
+]},
+{ id: 22, nombre: "Jugo en Leche", precio: 11800, tieneVariantes: true, variantes: [
+  "Mora", "Mango", "Lulo", "Maracuyá",
+  "Guanábana", 
+]},
+{ id: 20, nombre: "Malteada", precio: 16800, tieneVariantes: true, variantes: [
+  "Mora", "Fresa", "Milo", "Chocolate", "Vainilla", "Arequipe", "Café"
+]},
+{ id: 67, nombre: "Frapeado", precio: 15800, tieneVariantes: true, variantes: [
+  "Mora", "Fresa", "Milo", "Chocolate", "Vainilla", "Arequipe", "Café"
+]},
+
     { id: 39, nombre: "Agua", precio: 5500 },
     { id: 40, nombre: "Agua con Gas", precio: 5500 },
     { id: 41, nombre: "Canada Dry", precio: 5500 },
@@ -982,7 +1057,9 @@
     { id: 31, nombre: "Muffin", precio: 5500 },
     { id: 32, nombre: "Alfajores", precio: 4500 },
     { id: 47, nombre: "Affogato", precio: 10800 },
-    { id: 48, nombre: "Dulces Detalles", precio: 4000 }
+    { id: 48, nombre: "Dulces Detalles", precio: 4000 },
+    { id: 75, nombre: "Alfajores Dileto", precio: 5000, tieneVariantes: true, variantes: ["Sniker","Caramelo Salado","Maracuyá"] }
+
   ],
   "Focaccias": [
     { id: 33, nombre: "Focaccia con Jamón Cerdo", precio: 17800 },
@@ -1016,6 +1093,9 @@
         let pedidoEditandoId = null;
         let articuloEditandoId = null;
         let cantidadEditando = 1;
+        let articuloVarianteBase = null;  // guarda el artículo original
+        let varianteSeleccionada = null;  // guarda el sabor elegido
+
 
         function formatearPrecio(precio) {
             return precio.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
@@ -1072,16 +1152,15 @@ function renderizarMesas() {
         boton.className = 'mesa-boton';
         
         // Estilos para "Para Llevar"
-        if (esParaLlevar) {
-            boton.style.background = 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)';
-            boton.style.color = 'white';
-            boton.style.borderColor = '#FF9800';
-            if (mesaSeleccionada === i) boton.classList.add('seleccionada');
-        } else {
-            boton.className += ' ' + (ocupada ? 'ocupada' : 'libre');
-            if (mesaSeleccionada === i) boton.classList.add('seleccionada');
-        }
-        
+       // En renderizarMesas, donde dice "Estilos para Para Llevar":
+if (esParaLlevar) {
+  boton.classList.add('para-llevar');  // ← clase en vez de inline
+  if (mesaSeleccionada === i) boton.classList.add('seleccionada');
+} else {
+  boton.className = ocupada ? 'mesa-boton ocupada' : 'mesa-boton libre';
+  if (mesaSeleccionada === i) boton.classList.add('seleccionada');
+}
+
         // Nombre de la mesa
         let nombreMesa;
         if (i === 10) {
@@ -1170,6 +1249,15 @@ function seleccionarMesa(numeroMesa) {
         }
 
         function seleccionarArticulo(id, nombre, precio) {
+  // Buscar si el artículo tiene variantes
+  for (let categoria in ARTICULOS) {
+    const art = ARTICULOS[categoria].find(a => a.id === id);
+    if (art && art.tieneVariantes) {
+      abrirModalVariantes(id, nombre, precio, art.variantes);
+      return; // No continúa con la lógica normal
+    }
+  }
+
         // Si es propina, preguntar el monto
 if (id === 999) {
     const monto = prompt('💰 ¿Cuánto es la propina?');
@@ -1434,136 +1522,78 @@ function cargarPedidos() {
 function mostrarPedidos(pedidos) {
   const lista = document.getElementById('listaPedidos');
   if (!pedidos || pedidos.length === 0) {
-    lista.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">📋 Sin pedidos</div>';
+    lista.innerHTML = `<div class="sin-pedidos">Sin pedidos</div>`;
     return;
   }
-  
-  const pedidosArray = Object.values(pedidos).reverse();
-    
-  lista.innerHTML = pedidosArray.map(pedido => {
-    let estadoTexto = '';
-    let estadoColor = '';
-    let botonTexto = '';
-    let botonColor = '';
-    let mostrarBoton = true;
 
-    // Definir estados y colores
+  const pedidosArray = Object.values(pedidos).reverse();
+
+  lista.innerHTML = pedidosArray.map(pedido => {
+    let estadoTexto, estadoClase, botonTexto, botonColor, mostrarBoton = true;
+
     if (pedido.estado === 'pendiente') {
-      estadoTexto = '⏳ PENDIENTE';
-      estadoColor = '#ff6b6b';
-      botonTexto = '✓ PREPARADO';
-      botonColor = '#5cb85c';
+      estadoTexto = 'PENDIENTE';
+      estadoClase = 'estado-pendiente';
+      botonTexto  = 'ENTREGADO';
+      botonColor  = '#0275d8';
     } else if (pedido.estado === 'preparado') {
-      estadoTexto = '🍽️ PREPARADO';
-      estadoColor = '#ffc107';
-      botonTexto = '💵 PAGADO';
-      botonColor = '#0275d8';
+      estadoTexto = 'ENTREGADO';
+      estadoClase = 'estado-entregado';
+      botonTexto  = 'PAGADO';
+      botonColor  = '#1a7a3c';
     } else if (pedido.estado === 'pagado') {
-      estadoTexto = '✔️ PAGADO';
-      estadoColor = '#28a745';
-      botonTexto = '✔️ PAGADO';
+      estadoTexto = 'PAGADO';
+      estadoClase = 'estado-pagado';
       mostrarBoton = false;
     }
 
+    const nombreMesa = [11,12,13].includes(parseInt(pedido.mesa))
+      ? 'Para Llevar'
+      : parseInt(pedido.mesa) === 10
+        ? 'VIP'
+        : `Mesa ${pedido.mesa}`;
+
     return `
-      <div class="pedido-item" style="
-        border-left: 5px solid ${estadoColor};
-        background: ${pedido.estado === 'pagado' ? '#f0f8f0' : '#fff'};
-        margin: 12px 0;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      ">
-        <!-- Encabezado con Mesa y Hora -->
-<div style="font-weight: bold; font-size: 16px;">
-${[11, 12, 13].includes(parseInt(pedido.mesa)) ? '📦 Para Llevar' : '🪑 ' + (parseInt(pedido.mesa) === 20 ? '⭐ VIP' : 'Mesa: ' + pedido.mesa)}
-</div>
+      <div class="pedido-item ${estadoClase}">
 
-
-
-        <!-- Estado del Pedido -->
-        <div style="background: ${estadoColor}; color: white; padding: 8px 12px; border-radius: 6px; font-weight: bold; margin-bottom: 10px; text-align: center;">
-          ${estadoTexto}
+        <div class="pedido-meta">
+          <span class="pedido-mesa">${nombreMesa}</span>
+          <span class="pedido-hora">${pedido.fecha} — ${pedido.tiempo}</span>
         </div>
 
-        <!-- Items del Pedido -->
-        <div style="margin: 10px 0; padding: 10px; background: #f9f9f9; border-radius: 6px;">
-          <strong style="color: #333;">📝 Items:</strong>
-          <div style="margin-top: 6px; color: #666;">
-            ${pedido.items ? pedido.items.map(i => `• ${i.nombre} x${i.cantidad}`).join('<br>') : 'N/A'}
-          </div>
+        <div class="pedido-estado-badge ${estadoClase}-badge">${estadoTexto}</div>
+
+        <div class="pedido-items">
+          ${pedido.items ? pedido.items.map(i => `${i.nombre} x${i.cantidad}`).join('<br>') : 'N/A'}
         </div>
 
-        <!-- Tiempo de Preparación -->
         ${pedido.tiempoPreparacion ? `
-          <div style="background: #e7f5e7; padding: 8px 12px; border-radius: 6px; margin: 10px 0; text-align: center;">
-            <strong style="color: #28a745;">⏱️ Tiempo: ${formatearTiempo(pedido.tiempoPreparacion)}</strong>
-          </div>
-        ` : ''}
+          <div class="pedido-tiempo">
+            Tiempo de preparación: ${formatearTiempo(pedido.tiempoPreparacion)}
+          </div>` : ''}
 
-   <!-- Propina (si existe) -->
-${pedido.propina && pedido.propina > 0 ? `
-    <div style="margin:8px 0; padding:10px 12px; background:linear-gradient(135deg,#FFD700,#FFA500); color:#8B4513; border-radius:6px; font-weight:bold; text-align:center; box-shadow:0 2px 6px rgba(255,215,0,0.3)">
-        🎁 Propina: ${formatearPrecio(pedido.propina)}
-    </div>
-` : ''}
+        ${pedido.propina && pedido.propina > 0 ? `
+          <div class="pedido-propina">
+            Propina: ${formatearPrecio(pedido.propina)}
+          </div>` : ''}
 
-<!-- Total -->
-<div style="margin:10px 0; font-weight:bold; font-size:16px; color:#8B4513">
-    💰 Total: ${formatearPrecio(pedido.total)}
-</div>
+        <div class="pedido-total">Total: ${formatearPrecio(pedido.total)}</div>
 
-        <!-- Botones de Acción -->
-        <div class="pedido-botones" style="display: flex; gap: 8px; margin-top: 12px;">
-          <button onclick="abrirModalEditar('${pedido.key}')" style="
-            flex: 1;
-            padding: 10px;
-            background: #ffc107;
-            color: #333;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-          " onmouseover="this.style.background='#ffb300'" onmouseout="this.style.background='#ffc107'">
-            ✏️ Editar
-          </button>
-
+        <div class="pedido-botones">
+          <button class="editar" onclick="abrirModalEditar('${pedido.key}')">Editar</button>
           ${mostrarBoton ? `
-            <button onclick="cambiarEstadoPedido('${pedido.key}', '${pedido.estado}', ${pedido.timestamp})" style="
-              flex: 1;
-              padding: 10px;
-              background: ${botonColor};
-              color: white;
-              border: none;
-              border-radius: 6px;
-              font-weight: bold;
-              cursor: pointer;
-              transition: 0.3s;
-            " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+            <button class="completar"
+              style="background:${botonColor}"
+              onclick="cambiarEstadoPedido('${pedido.key}', '${pedido.estado}', ${pedido.timestamp})">
               ${botonTexto}
-            </button>
-          ` : ''}
-
-          <button onclick="eliminarPedido('${pedido.key}')" style="
-            flex: 1;
-            padding: 10px;
-            background: #d9534f;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-          " onmouseover="this.style.background='#c9302c'" onmouseout="this.style.background='#d9534f'">
-            🗑️ Eliminar
-          </button>
+            </button>` : ''}
+          <button class="eliminar" onclick="eliminarPedido('${pedido.key}')">Eliminar</button>
         </div>
+
       </div>
     `;
   }).join('');
 }
-
 
        function abrirModalEditar(key) {
     pedidosRef.child(key).once('value', (snapshot) => {
@@ -1609,15 +1639,95 @@ ${pedido.propina && pedido.propina > 0 ? `
         modal.style.display = 'block';
     });
 }
+function abrirModalVariantesEditar(id, nombre, precio, variantes) {
+  // Guardamos temporalmente el contexto
+  articuloVarianteBase = { id, nombre, precio };
+  varianteSeleccionada = null;
+
+  document.getElementById('modalVariantesNombre').textContent =
+    `Elige el sabor — ${nombre}`;
+
+  const lista = document.getElementById('listaVariantes');
+  lista.innerHTML = variantes.map(sabor => `
+    <button
+      class="variante-btn"
+      onclick="seleccionarVarianteEditar('${sabor}', this)"
+    >
+      ${sabor}<br>
+      <small style="color: var(--gray-500); font-size:10px; font-weight:600;">
+        ${formatearPrecio(precio)}
+      </small>
+    </button>
+  `).join('');
+
+  document.getElementById('cantidadVariante').value = 1;
+
+  // Cambiar el botón "Agregar al Pedido" para que confirme en modo editar
+  const btnConfirmar = document.querySelector('#modalVariantes .btn-agregar-modal');
+  btnConfirmar.textContent = 'Agregar al Pedido';
+  btnConfirmar.onclick = confirmarVarianteEditar;
+
+  document.getElementById('modalVariantes').style.display = 'block';
+}
+
+function seleccionarVarianteEditar(sabor, btn) {
+  document.querySelectorAll('.variante-btn')
+    .forEach(b => b.classList.remove('seleccionada-variante'));
+  btn.classList.add('seleccionada-variante');
+  varianteSeleccionada = sabor;
+}
+
+function confirmarVarianteEditar() {
+  if (!varianteSeleccionada) {
+    alert('Elige un sabor primero');
+    return;
+  }
+
+  const cantidad = parseInt(document.getElementById('cantidadVariante').value);
+  const nombreCompleto = `${articuloVarianteBase.nombre} - ${varianteSeleccionada}`;
+
+  // Agregar al pedido que se está editando en Firebase
+  pedidosRef.child(pedidoEditandoId).once('value', snapshot => {
+    const pedido = snapshot.val();
+    pedido.items.push({
+      id: articuloVarianteBase.id,
+      nombre: nombreCompleto,
+      precio: articuloVarianteBase.precio,
+      cantidad,
+      subtotal: articuloVarianteBase.precio * cantidad
+    });
+    pedido.total = pedido.items.reduce((sum, item) => sum + item.subtotal, 0);
+    pedidosRef.child(pedidoEditandoId).update(pedido);
+  });
+
+  articuloVarianteBase = null;
+  varianteSeleccionada = null;
+  cerrarModalVariantes();
+
+  // Volver a abrir el modal de editar para ver los cambios
+  setTimeout(() => abrirModalEditar(pedidoEditandoId), 300);
+}
 
 
-        function seleccionarArticuloEditar(id, nombre, precio) {
-            document.querySelectorAll('.articulo-editar').forEach(btn => btn.classList.remove('seleccionado-modal'));
-            document.getElementById(`art-modal-${id}`).classList.add('seleccionado-modal');
-            articuloEditandoId = id;
-            cantidadEditando = 1;
-            document.getElementById('cantidadEditando').value = 1;
-        }
+      function seleccionarArticuloEditar(id, nombre, precio) {
+  // Verificar si tiene variantes
+  for (let categoria in ARTICULOS) {
+    const art = ARTICULOS[categoria].find(a => a.id === id);
+    if (art && art.tieneVariantes) {
+      // Abrir modal de variantes en modo "editar"
+      abrirModalVariantesEditar(id, nombre, precio, art.variantes);
+      return;
+    }
+  }
+
+  // Sin variantes — comportamiento normal
+  document.querySelectorAll('.articulo-editar')
+    .forEach(btn => btn.classList.remove('seleccionado-modal'));
+  document.getElementById(`art-modal-${id}`).classList.add('seleccionado-modal');
+  articuloEditandoId = id;
+  cantidadEditando = 1;
+  document.getElementById('cantidadEditando').value = 1;
+}
 
         function sumarCantidadEditando() {
             document.getElementById('cantidadEditando').value = parseInt(document.getElementById('cantidadEditando').value) + 1;
@@ -1762,9 +1872,15 @@ function cerrarModal() {
 }
 
 window.onclick = function(event) {
-    const modal = document.getElementById('modalEditar');
-    if (event.target === modal) cerrarModal();
-};
+  const modalEditar = document.getElementById('modalEditar');
+  const modalVariantes = document.getElementById('modalVariantes');
+
+  if (event.target == modalVariantes) {
+    cerrarModalVariantes();
+  } else if (event.target == modalEditar) {
+    cerrarModal();
+  }
+}
 
 // Inicializar siempre al cargar
 window.addEventListener('load', inicializar);
@@ -1917,6 +2033,75 @@ function agregarPropina() {
 }
 
 
+function abrirModalVariantes(id, nombre, precio, variantes) {
+  articuloVarianteBase = { id, nombre, precio };
+  varianteSeleccionada = null;
+
+  document.getElementById('modalVariantesNombre').textContent =
+    `Elige el sabor - ${nombre}`;
+
+  const lista = document.getElementById('listaVariantes');
+  lista.innerHTML = variantes.map(sabor => `
+    <button
+      class="variante-btn"
+      onclick="seleccionarVariante('${sabor}', this)"
+    >
+      ${sabor}<br>
+      <small style="color: #8B4513; font-weight: 700;">
+        ${formatearPrecio(precio)}
+      </small>
+    </button>
+  `).join('');
+
+  document.getElementById('cantidadVariante').value = 1;
+  document.getElementById('modalVariantes').style.display = 'block';
+}
+
+function seleccionarVariante(sabor, btn) {
+  // Quitar selección anterior
+  document.querySelectorAll('.variante-btn')
+    .forEach(b => b.classList.remove('seleccionada-variante'));
+  btn.classList.add('seleccionada-variante');
+  varianteSeleccionada = sabor;
+}
+
+function confirmarVariante() {
+  if (!varianteSeleccionada) {
+    alert('Elige un sabor primero');
+    return;
+  }
+
+  const cantidad = parseInt(document.getElementById('cantidadVariante').value);
+  const nombreCompleto =
+    `${articuloVarianteBase.nombre} - ${varianteSeleccionada}`;
+
+  pedidoActual.push({
+    id: articuloVarianteBase.id,
+    nombre: nombreCompleto,        // ej: "Alfajores - Arequipe"
+    precio: articuloVarianteBase.precio,
+    cantidad,
+    subtotal: articuloVarianteBase.precio * cantidad
+  });
+
+  mostrarResumen();
+  cerrarModalVariantes();
+}
+
+function cerrarModalVariantes() {
+  document.getElementById('modalVariantes').style.display = 'none';
+  articuloVarianteBase = null;
+  varianteSeleccionada = null;
+}
+
+function sumarCantidadVariante() {
+  const input = document.getElementById('cantidadVariante');
+  input.value = parseInt(input.value) + 1;
+}
+
+function restarCantidadVariante() {
+  const input = document.getElementById('cantidadVariante');
+  if (parseInt(input.value) > 1) input.value = parseInt(input.value) - 1;
+}
 
 
 
