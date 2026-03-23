@@ -1005,11 +1005,13 @@ input[type="date"] {
     { id: 6, nombre: "Chocolate", precio: 8800 },
     { id: 7, nombre: "Milo Caliente", precio: 10800 },
     { id: 8, nombre: "Aromática", precio: 5800 },
-    { id: 9, nombre: "Cappuccino Tradicional", precio: 9800 },
-    { id: 10, nombre: "Cappuccino Macadamia", precio: 12800 },
-    { id: 11, nombre: "Cappuccino Vainilla", precio: 12800 },
-    { id: 12, nombre: "Cappuccino Caramelo", precio: 12800 },
-    { id: 13, nombre: "Cappuccino Amaretto", precio: 15800 },
+    { id: 9, nombre: "Cappuccino", precio: 9800, tieneVariantes: true, variantes: [
+      { nombre: "Tradicional", precio: 9800 },
+      { nombre: "Macadamia", precio: 12800 },
+      { nombre: "Vainilla", precio: 12800 },
+      { nombre: "Caramelo", precio: 12800 },
+      { nombre: "Amaretto", precio: 15800 }
+    ]},
     { id: 14, nombre: "Café Bombón", precio: 11800 },
     { id: 15, nombre: "Café Viens", precio: 10800 },
     { id: 16, nombre: "Chai Latte", precio: 10800 }
@@ -1567,7 +1569,11 @@ function mostrarPedidos(pedidos) {
         <div class="pedido-estado-badge ${estadoClase}-badge">${estadoTexto}</div>
 
         <div class="pedido-items">
-          ${pedido.items ? pedido.items.map(i => `${i.nombre} x${i.cantidad}`).join('<br>') : 'N/A'}
+          ${pedido.items
+            ? pedido.items
+                .map(i => `${i.nombre} x${i.cantidad} - ${formatearPrecio(i.subtotal ?? (i.precio * i.cantidad))}`)
+                .join('<br>')
+            : 'N/A'}
         </div>
 
         ${pedido.tiempoPreparacion ? `
@@ -1651,17 +1657,22 @@ function abrirModalVariantesEditar(id, nombre, precio, variantes) {
     `Elige el sabor — ${nombre}`;
 
   const lista = document.getElementById('listaVariantes');
-  lista.innerHTML = variantes.map(sabor => `
+  lista.innerHTML = variantes.map(v => {
+    const sabor = (typeof v === 'string') ? v : v.nombre;
+    const precioVariante = (typeof v === 'string') ? precio : v.precio;
+
+    return `
     <button
       class="variante-btn"
-      onclick="seleccionarVarianteEditar('${sabor}', this)"
+      onclick="seleccionarVarianteEditar('${sabor}', ${precioVariante}, this)"
     >
       ${sabor}<br>
       <small style="color: var(--gray-500); font-size:10px; font-weight:600;">
-        ${formatearPrecio(precio)}
+        ${formatearPrecio(precioVariante)}
       </small>
     </button>
-  `).join('');
+  `;
+  }).join('');
 
   document.getElementById('cantidadVariante').value = 1;
 
@@ -1673,11 +1684,11 @@ function abrirModalVariantesEditar(id, nombre, precio, variantes) {
   document.getElementById('modalVariantes').style.display = 'block';
 }
 
-function seleccionarVarianteEditar(sabor, btn) {
+function seleccionarVarianteEditar(sabor, precioVariante, btn) {
   document.querySelectorAll('.variante-btn')
     .forEach(b => b.classList.remove('seleccionada-variante'));
   btn.classList.add('seleccionada-variante');
-  varianteSeleccionada = sabor;
+  varianteSeleccionada = { nombre: sabor, precio: precioVariante };
 }
 
 function confirmarVarianteEditar() {
@@ -1687,7 +1698,7 @@ function confirmarVarianteEditar() {
   }
 
   const cantidad = parseInt(document.getElementById('cantidadVariante').value);
-  const nombreCompleto = `${articuloVarianteBase.nombre} - ${varianteSeleccionada}`;
+  const nombreCompleto = `${articuloVarianteBase.nombre} - ${varianteSeleccionada.nombre}`;
 
   // Agregar al pedido que se está editando en Firebase
   pedidosRef.child(pedidoEditandoId).once('value', snapshot => {
@@ -1695,9 +1706,9 @@ function confirmarVarianteEditar() {
     pedido.items.push({
       id: articuloVarianteBase.id,
       nombre: nombreCompleto,
-      precio: articuloVarianteBase.precio,
+      precio: varianteSeleccionada.precio,
       cantidad,
-      subtotal: articuloVarianteBase.precio * cantidad
+      subtotal: varianteSeleccionada.precio * cantidad
     });
     pedido.total = pedido.items.reduce((sum, item) => sum + item.subtotal, 0);
     pedidosRef.child(pedidoEditandoId).update(pedido);
@@ -2044,28 +2055,33 @@ function abrirModalVariantes(id, nombre, precio, variantes) {
     `Elige el sabor - ${nombre}`;
 
   const lista = document.getElementById('listaVariantes');
-  lista.innerHTML = variantes.map(sabor => `
+  lista.innerHTML = variantes.map(v => {
+    const sabor = (typeof v === 'string') ? v : v.nombre;
+    const precioVariante = (typeof v === 'string') ? precio : v.precio;
+
+    return `
     <button
       class="variante-btn"
-      onclick="seleccionarVariante('${sabor}', this)"
+      onclick="seleccionarVariante('${sabor}', ${precioVariante}, this)"
     >
       ${sabor}<br>
       <small style="color: #8B4513; font-weight: 700;">
-        ${formatearPrecio(precio)}
+        ${formatearPrecio(precioVariante)}
       </small>
     </button>
-  `).join('');
+  `;
+  }).join('');
 
   document.getElementById('cantidadVariante').value = 1;
   document.getElementById('modalVariantes').style.display = 'block';
 }
 
-function seleccionarVariante(sabor, btn) {
+function seleccionarVariante(sabor, precioVariante, btn) {
   // Quitar selección anterior
   document.querySelectorAll('.variante-btn')
     .forEach(b => b.classList.remove('seleccionada-variante'));
   btn.classList.add('seleccionada-variante');
-  varianteSeleccionada = sabor;
+  varianteSeleccionada = { nombre: sabor, precio: precioVariante };
 }
 
 function confirmarVariante() {
@@ -2076,14 +2092,14 @@ function confirmarVariante() {
 
   const cantidad = parseInt(document.getElementById('cantidadVariante').value);
   const nombreCompleto =
-    `${articuloVarianteBase.nombre} - ${varianteSeleccionada}`;
+    `${articuloVarianteBase.nombre} - ${varianteSeleccionada.nombre}`;
 
   pedidoActual.push({
     id: articuloVarianteBase.id,
     nombre: nombreCompleto,        // ej: "Alfajores - Arequipe"
-    precio: articuloVarianteBase.precio,
+    precio: varianteSeleccionada.precio,
     cantidad,
-    subtotal: articuloVarianteBase.precio * cantidad
+    subtotal: varianteSeleccionada.precio * cantidad
   });
 
   mostrarResumen();
